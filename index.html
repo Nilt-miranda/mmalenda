@@ -678,20 +678,20 @@ function genAttrs(level,style,sp){const bias=STYLE_B[style]||{};const a={};for(c
   const sh=level-ovrOf(a,sp);for(const k of AK)a[k]=clamp(r1(a[k]+sh),5,99);return a}
 /* ================= carreira ================= */
 const TIERS=[
-  {nome:'Estadual',ev:a=>'Campeonato Estadual de '+a,bouts:3,premio:[600,300,150],fama:[1.2,.6,.3],tv:150,leg:[2,1,.5]},
-  {nome:'Brasileiro',ev:a=>'Campeonato Brasileiro de '+a,bouts:4,premio:[2000,1000,500],fama:[3,1.5,1],tv:1200,leg:[6,3,2]},
-  {nome:'Pan-Americano',ev:a=>'Pan-Americano de '+a,bouts:4,premio:[5000,2500,1200],fama:[5,2.5,1.5],tv:4000,leg:[12,6,4]},
-  {nome:'Mundial',ev:a=>'Mundial de '+a,bouts:4,premio:[12000,6000,3000],fama:[9,4.5,2.5],tv:7000,leg:[30,15,10]},
-  {nome:'ADCC',ev:a=>'ADCC Submission Fighting World Championship',bouts:4,premio:[40000,20000,10000],fama:[12,6,3],tv:9000,leg:[40,20,12],eq:3},
-  {nome:'CBJJE',ev:a=>'Internacional SP Open CBJJE',bouts:4,premio:[0,0,0],pf:[500,500,700,900,1200,1500],fama:[1.5,.8,.4],tv:400,leg:[2,1,.6],eq:1,adj:-1},
-  {nome:'AJP Grand Slam',ev:a=>'Abu Dhabi Grand Slam Rio (AJP)',bouts:4,premio:[8000,4000,2000],fama:[3.5,1.8,1],tv:1000,leg:[8,4,2.5],eq:1,adj:2},
-  {nome:'AJP World Pro',ev:a=>'Abu Dhabi World Pro (AJP)',bouts:4,premio:[60000,25000,12000],fama:[8,4,2],tv:9000,leg:[25,12,8],eq:3,adj:0},
-  {nome:'CBJJE',ev:a=>'Campeonato Paulista CBJJE',bouts:3,premio:[0,0,0],pf:[300,300,400,500,600,800],fama:[.8,.4,.2],tv:200,leg:[1,.5,.3],eq:0,adj:2},
-  {nome:'CBJJE',ev:a=>'Mundial NoGi CBJJE',bouts:4,premio:[0,0,0],pf:[500,600,800,1200,1800,3000],fama:[3.5,1.8,1],tv:1500,leg:[7,3.5,2],eq:2,adj:0,nogi:1},
-  {nome:'CBJJE',ev:a=>'Brasileiro de Jiu-Jitsu CBJJE',bouts:4,premio:[0,0,0],pf:[500,500,600,700,850,1000],fama:[2,1,.6],tv:900,leg:[3,1.5,1],eq:1,adj:-2},
-  {nome:'CBJJE',ev:a=>'BJJ Internacional CBJJE',bouts:4,premio:[0,0,0],pf:[500,500,700,900,1200,2000],fama:[2,1,.6],tv:600,leg:[3,1.5,1],eq:1,adj:1},
-  {nome:'CBJJE',ev:a=>'Pan-Americano CBJJE',bouts:4,premio:[0,0,0],pf:[500,600,800,1000,1500,2500],fama:[3,1.5,1],tv:1200,leg:[5,2.5,1.5],eq:2,adj:-3},
-  {nome:'CBJJE',ev:a=>'Mundial de Jiu-Jitsu CBJJE',bouts:4,premio:[0,0,0],pf:[700,700,1000,1500,2000,5000],fama:[4.5,2.2,1.4],tv:1500,leg:[9,4.5,3],eq:2,adj:1},
+  {nome:'Estadual',ev:a=>'Campeonato Estadual de '+a,bouts:3,premio:[600,300,150],fama:[1.2,.6,.3],tv:120,leg:[2,1,.5]},
+  {nome:'Brasileiro',ev:a=>'Campeonato Brasileiro de '+a,bouts:4,premio:[2000,1000,500],fama:[3,1.5,1],tv:450,leg:[6,3,2]},
+  {nome:'Pan-Americano',ev:a=>'Pan-Americano de '+a,bouts:4,premio:[5000,2500,1200],fama:[5,2.5,1.5],tv:1800,leg:[12,6,4]},
+  {nome:'Mundial',ev:a=>'Mundial de '+a,bouts:4,premio:[12000,6000,3000],fama:[9,4.5,2.5],tv:3500,leg:[30,15,10]},
+  {nome:'ADCC',ev:a=>'ADCC Submission Fighting World Championship',bouts:4,premio:[40000,20000,10000],fama:[12,6,3],tv:6000,leg:[40,20,12],eq:3},
+  {nome:'CBJJE',ev:a=>'Internacional SP Open CBJJE',bouts:4,premio:[0,0,0],pf:[500,500,700,900,1200,1500],fama:[1.5,.8,.4],tv:150,leg:[2,1,.6],eq:1,adj:-1},
+  {nome:'AJP Grand Slam',ev:a=>'Abu Dhabi Grand Slam Rio (AJP)',bouts:4,premio:[8000,4000,2000],fama:[3.5,1.8,1],tv:250,leg:[8,4,2.5],eq:1,adj:2},
+  {nome:'AJP World Pro',ev:a=>'Abu Dhabi World Pro (AJP)',bouts:4,premio:[60000,25000,12000],fama:[8,4,2],tv:6000,leg:[25,12,8],eq:3,adj:0},
+  {nome:'CBJJE',ev:a=>'Campeonato Paulista CBJJE',bouts:3,premio:[0,0,0],pf:[300,300,400,500,600,800],fama:[.8,.4,.2],tv:100,leg:[1,.5,.3],eq:0,adj:2},
+  {nome:'CBJJE',ev:a=>'Mundial NoGi CBJJE',bouts:4,premio:[0,0,0],pf:[500,600,800,1200,1800,3000],fama:[3.5,1.8,1],tv:180,leg:[7,3.5,2],eq:2,adj:0,nogi:1},
+  {nome:'CBJJE',ev:a=>'Brasileiro de Jiu-Jitsu CBJJE',bouts:4,premio:[0,0,0],pf:[500,500,600,700,850,1000],fama:[2,1,.6],tv:200,leg:[3,1.5,1],eq:1,adj:-2},
+  {nome:'CBJJE',ev:a=>'BJJ Internacional CBJJE',bouts:4,premio:[0,0,0],pf:[500,500,700,900,1200,2000],fama:[2,1,.6],tv:180,leg:[3,1.5,1],eq:1,adj:1},
+  {nome:'CBJJE',ev:a=>'Pan-Americano CBJJE',bouts:4,premio:[0,0,0],pf:[500,600,800,1000,1500,2500],fama:[3,1.5,1],tv:220,leg:[5,2.5,1.5],eq:2,adj:-3},
+  {nome:'CBJJE',ev:a=>'Mundial de Jiu-Jitsu CBJJE',bouts:4,premio:[0,0,0],pf:[700,700,1000,1500,2000,5000],fama:[4.5,2.2,1.4],tv:250,leg:[9,4.5,3],eq:2,adj:1},
 ];
 const eqOf=t=>TIERS[t].eq!=null?TIERS[t].eq:t;
 const TBONUS=[[.5,.25,0],[1,.5,.25],[1.5,1,.5],[2,1,.5]];
@@ -728,7 +728,7 @@ const ORIGENS={
 const LESOES=[{nome:'Fratura na mão',q:2},{nome:'Lesão no joelho',q:2},{nome:'Concussão',q:1,perm:{qx:-1}},{nome:'Lesão no ombro',q:2},{nome:'Costela trincada',q:1},{nome:'Ruptura do ligamento cruzado',q:4,perm:{vel:-2}},{nome:'Corte profundo no supercílio',q:1}];
 const EQUIP={g:['Koral','Atama','Shoyoroll','Vouk','Keiko','Fuji Sports'],s:['Venum','Everlast','Hayabusa','Pretorian','Fairtex']};
 const equipOn=()=>!!(G.equip&&G.equip.ate>=absQ());
-const equipCost=id=>(id==='bjj'||id==='judo')?250:150;
+const equipCost=id=>(id==='bjj'||id==='judo')?120:80;
 const MARCAS=['Venum','Everlast','Hayabusa','Koral','Shoyoroll','Atama','Vouk','Integralmédica','Max Titanium','Growth Supplements','Monster Energy','Fuji Sports'];
 const ACADS={bjj:['Alliance','Gracie Barra','Checkmat','Atos Jiu-Jitsu','GF Team','Nova União','Dream Art','Soul Fighters'],
   judo:['Esporte Clube Pinheiros','Minas Tênis Clube','Sogipa','Instituto Reação','Associação Judô Vila Sônia'],
@@ -804,11 +804,13 @@ function nextR(id){const st=G.artes[id];if(id==='bjj'&&st.r<5&&(G.idade>=16||st.
 function reqAt(id,nx,k){const Rq=reqOf(id),st=G.artes[id];if(id==='bjj'&&nx===5&&st.r>=1&&(k==='q'||k==='qmin'))return k==='q'?2:1;return Rq[k][nx]}
 function needQ(id){const st=G.artes[id],nx=nextR(id);return Math.max(reqAt(id,nx,'qmin'),Math.round(reqAt(id,nx,'q')*EST[st.est||'pad'].tq*(st.var||1)))}
 function evTier(key){if(!key)return null;if(key.startsWith('T:'))return G.q;if(key.startsWith('A:'))return 4;const m=/^X(\d+):/.exec(key);return m?+m[1]:null}
-function travelOf(){if(G.ev==='AM')return 200;const t=evTier(G.ev);return t==null?0:TIERS[t].tv}
+/* inscrição (1º lote) + deslocamento; juvenil paga menos */
+const tvOf=t=>Math.round(TIERS[t].tv*(G.idade<18?.6:1)/10)*10;
+function travelOf(){if(G.ev==='AM')return 150;const t=evTier(G.ev);return t==null?0:tvOf(t)}
 function prizeOf(art,t,place){place=place||1;const T=TIERS[t],A=ARTS[art],juv=G.idade<18,r=G.artes[art].r;
   if(T.pf){if(place!==1)return 0;return juv?T.pf[0]:T.pf[1+Math.max(0,r-4)]}
   const bf=A.porFaixa&&!juv&&t!==4?bfOf(art,r):1;return Math.round(T.premio[place-1]*(juv?.35:1)*(.5+.5*bf)/10)*10}
-function subOf(art,t){const p=prizeOf(art,t),T=TIERS[t];return (t===4?'Absoluto sem kimono':catLabel(art)+(T.nogi?' · sem kimono':''))+' · '+(p?(T.pf?'campeão do absoluto ganha '+fmt$(p):'ouro paga '+fmt$(p)):'sem premiação em dinheiro')+' · inscrição e viagem '+fmt$(T.tv)}
+function subOf(art,t){const p=prizeOf(art,t),T=TIERS[t];return (t===4?'Absoluto sem kimono':catLabel(art)+(T.nogi?' · sem kimono':''))+' · '+(p?(T.pf?'campeão do absoluto ganha '+fmt$(p):'ouro paga '+fmt$(p)):'sem premiação em dinheiro')+' · inscrição e viagem '+fmt$(tvOf(t))}
 function injRisk(){const a=G.idade,n=Object.keys(G.artes).filter(id=>(G.plano[id]||0)>0).length;
   return .022+(usedSlots()>3?.015:0)+Math.max(0,n-1)*.012+(a>=30?.02:0)+(a>=34?.03:0)+G.desgaste/2500}
 const canDebut=()=>Object.keys(G.artes).some(a=>G.artes[a].r>=half(a))||((G.cartel.mmaam||{}).v||0)>=3;
@@ -851,7 +853,7 @@ function evOptions(){const L=[],inj=!!G.lesao;
       L.push({key:'M:'+i,tipo:'mma',i,ok:!inj,why:inj?'Você está lesionado':'',titulo:o.titulo,
         nome:(o.titulo?(G.mma.ros[0]==='P'?'Defesa de cinturão':'Disputa de cinturão')+': ':'')+'vs. '+n.nome+(n.ap?' "'+n.ap+'"':''),
         sub:ORGS[G.mma.org].nome+' · '+rankTxt(o.idx)+' · cartel '+n.v+'-'+n.d+' · bolsa '+fmt$(C.show*mult)+' + '+fmt$(C.show*mult)+' na vitória'+(isRival(n.id)?' · REVANCHE':'')})})}
-  if(!G.mma&&G.idade>=16){const c=G.cartel.mmaam||{v:0,d:0};L.push({key:'AM',tipo:'amador',ok:!inj,why:inj?'Você está lesionado':'',nome:'Luta de MMA amador',sub:'3 rounds de 3 minutos · sem bolsa · inscrição e viagem '+fmt$(200)+' · cartel amador '+c.v+'-'+c.d})}
+  if(!G.mma&&G.idade>=16){const c=G.cartel.mmaam||{v:0,d:0};L.push({key:'AM',tipo:'amador',ok:!inj,why:inj?'Você está lesionado':'',nome:'Luta de MMA amador',sub:'3 rounds de 3 minutos · sem bolsa · inscrição e viagem '+fmt$(150)+' · cartel amador '+c.v+'-'+c.d})}
   if(!G.mma&&G.idade>=18){const okd=canDebut(),ok=okd&&!inj;
     L.push({key:'D',tipo:'estreia',ok,why:inj?'Você está lesionado':(!okd?'Precisa chegar à metade das graduações em alguma arte (ex.: faixa roxa de Jiu-Jitsu) ou ter 3 vitórias no MMA amador':'Contrato com o '+ORGS[0].nome),nome:'Estreia no MMA profissional',sub:'Escolha a categoria de peso e assine com o '+ORGS[0].nome})}
   L.push({key:'none',tipo:'none',ok:true,nome:'Sem competição: foco total no treino',sub:'Ganhos de treino +25% neste trimestre',why:''});
@@ -1079,6 +1081,8 @@ function sponsorCheck(){if(G.fama<10||(G.patro&&G.patro.ate>absQ()+1)||R()>.4)re
 function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)||{},fin:G.ult&&G.ult.fin};
   if(G.ult&&G.ult.les)rep.l.push(['red','Lesão no treino: '+G.ult.les]);
   const synAntes=activeSyn().map(s=>s.nome);
+  {const bj=G.artes.bjj;if(bj&&bj.r>=1&&bj.r<=4&&G.idade>=16){const de=ARTS.bjj.ranks[bj.r].toLowerCase();bj.r=5;bj.q=0;bj.qr=0;bj.promo=false;bj.var=estVar(bj.est);bj.xp=Math.max(bj.xp,REQS.bjj.xp[5]);
+    rep.l.push(['gold','Aos 16 anos a faixa infantil acaba: da '+de+' para a faixa azul de Jiu-Jitsu!']);marco('Faixa azul de Jiu-Jitsu (fim das faixas infantis, aos 16)');news(G.nome+' troca a '+de+' pela faixa azul de Jiu-Jitsu.')}}
   for(const [id,st] of Object.entries(G.artes)){const tr=(G.plano[id]||0)>0||teachN(id)>0||(profOn()&&G.prof.art===id);st.q+=tr?1:.5;st.qr=(st.qr!=null?st.qr:0)+(tr?1:.5);
     const Rq=reqOf(id),nx=nextR(id);if(nx>=ARTS[id].ranks.length)continue;
     const normal=st.xp>=Rq.xp[nx]&&st.qr>=reqAt(id,nx,'qmin')&&st.q>=needQ(id);
@@ -1199,7 +1203,8 @@ function artsCard(){const ids=Object.keys(G.artes),rest=ART_IDS.filter(a=>!G.art
    '<li>O tempo depende do mestre: o tradicional segura a faixa por mais tempo, o equilibrado segue o padrão e o que gradua rápido libera antes.</li>'+
    '<li>Medalhas encurtam o tempo: ouro no Estadual vale meio trimestre, no Brasileiro um, no Pan um e meio e no Mundial dois.</li>'+
    '<li>Ninguém passa do tempo mínimo oficial nem da idade mínima. No Jiu-Jitsu (IBJJF): 2 anos de azul, 1 ano e meio de roxa e 1 ano e meio de marrom, ou seja, pelo menos 5 anos da azul até a preta. Azul e roxa a partir dos 16, marrom aos 18 e preta aos 19. Numa academia tradicional o caminho até a preta costuma levar 10 a 12 anos.</li>'+
-   '<li>Até os 15 anos o Jiu-Jitsu tem as faixas infantis: cinza, amarela, laranja e verde (cada mestre ainda usa variações com listra branca ou preta). O comum é amarela aos 14, laranja aos 15 e azul aos 16. Quem começa depois dos 16 vai da branca direto para a azul.</li>'+
+   '<li>Até os 15 anos o Jiu-Jitsu tem as faixas infantis: cinza, amarela, laranja e verde (cada mestre ainda usa variações com listra branca ou preta). O comum é amarela aos 14, laranja aos 15 e azul aos 16: ao completar 16 anos, quem tem faixa infantil passa para a azul. Quem começa depois dos 16 vai da branca direto para a azul.</li>'+
+   '<li>No Judô a sequência da CBJ (branca, cinza, azul, amarela, laranja, verde, roxa, marrom e preta) é a mesma para crianças e adultos, então não há troca obrigatória aos 16.</li>'+
    '<li>Ouro no Mundial (Jiu-Jitsu, Judô e Karatê) gradua direto para a próxima faixa no fim do trimestre.</li>'+
    '<li>Trocar de academia custa '+fmt$(MATRICULA)+', só pode uma vez por ano e o novo mestre conta só metade do seu tempo de faixa.</li></ul></details>'+
    (rest.length?'<div class="stack-s"><div class="label">Aprender uma nova arte · matrícula '+fmt$(MATRICULA)+'</div>'+rest.map(id=>{const ce=canEnroll(id);return '<div class="between"><div class="small" style="flex:1;min-width:0"><b>'+ARTS[id].nome+'</b> <span class="muted">'+esc(ARTS[id].forte)+'</span>'+(ce.ok?'':'<div class="tiny" style="color:var(--red)">'+esc(ce.why)+'</div>')+'</div><button class="btn btn-xs" data-a="matricular" data-art="'+id+'" '+(ce.ok?'':'disabled')+'>Matricular</button></div>'}).join('')+'</div>':'')+'</section>'}
