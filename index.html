@@ -722,7 +722,7 @@ const BIOS={
 };
 const ORIGENS={
   humilde:{nome:'Da comunidade',desc:'Talento acima da média e fome de vencer. Começa quase sem dinheiro.',pot:[86,95],din:150,ef:1.06},
-  familia:{nome:'Família de lutadores',desc:'Cresceu no tatame: já começa graduado na arte inicial (no Jiu-Jitsu, faixa amarela).',pot:[80,90],din:1500,ef:1,rank:1,bonus:5},
+  familia:{nome:'Família de lutadores',desc:'Cresceu no tatame. Começa na faixa branca como todo mundo, mas evolui bem mais rápido na arte inicial (treino +30%). Nas outras artes, ritmo normal.',pot:[80,90],din:1500,ef:1,bonus:3,artMult:1.3,xpMult:1.25},
   classe:{nome:'Família com recursos',desc:'A família paga uma equipe renomada até os 18 anos e dá um bom começo.',pot:[78,88],din:5000,ef:1,tier:1},
 };
 const LESOES=[{nome:'Fratura na mão',q:2},{nome:'Lesão no joelho',q:2},{nome:'Concussão',q:1,perm:{qx:-1}},{nome:'Lesão no ombro',q:2},{nome:'Costela trincada',q:1},{nome:'Ruptura do ligamento cruzado',q:4,perm:{vel:-2}},{nome:'Corte profundo no supercílio',q:1}];
@@ -820,7 +820,7 @@ function startCareer(d){const O=ORIGENS[d.orig],B=BIOS[d.bio],art=ARTS[d.art];
     bolsa:null,patro:null,lesao:null,desgaste:0,mma:null,ofertas:[],pend:[],view:'hub',modal:null,uid:0,fight:null,res:null,rep:null,ult:{},ganhoTotal:0};
   for(const k of AK){let v=24+rnd(0,8)+(art.w[k]||0)*14+(B.mod[k]||0)+(O.bonus?(art.w[k]||0)*O.bonus:0);
     if(k==='qx')v=38+rnd(0,8)+(B.mod.qx||0);G.at[k]=r1(clamp(v,10,62))}
-  const rk=O.rank?(d.art==='bjj'?2:O.rank):0,e0=pickEst();G.artes[d.art]={r:rk,xp:reqOf(d.art).xp[rk],q:0,qr:0,t:O.tier||0,desde:2026,est:e0,var:estVar(e0)};
+  const rk=0,e0=pickEst();G.artes[d.art]={r:rk,xp:reqOf(d.art).xp[rk],q:0,qr:0,t:O.tier||0,desde:2026,est:e0,var:estVar(e0)};
   G.plano[d.art]=3;G.ev='T:'+d.art;
   news(G.nome+' começa a treinar '+art.nome+' aos 14 anos.');marco('Primeiro dia de treino de '+art.nome);
   G.modal={tipo:'intro'}}
@@ -910,8 +910,8 @@ function trainCalc(mult,dry){const at=dry?Object.assign({},G.at):G.at,gains={},p
     if(id.startsWith('aula_')){const x=id.slice(5);if(!dry&&G.artes[x])G.artes[x].xp+=.3*n;continue}
     const art=id==='prep'?PREP:ARTS[id],tier=id==='prep'?PREPT[G.prepT]:ACAD[G.artes[id].t];per[id]={};
     for(let i=0;i<n;i++){for(const k in art.w){const cap=capOf(k);const room=clamp((cap-at[k])/(cap-15),.03,1.2);
-        const g=1.05*art.w[k]*tier.mult*am*room*G.ef*mult*(id==='prep'?1:EST[G.artes[id].est||'pad'].tm)*(dry?1:rnd(.7,1.3));at[k]=Math.min(cap,at[k]+g);gains[k]=(gains[k]||0)+g;per[id][k]=(per[id][k]||0)+g}
-      if(!dry&&id!=='prep')G.artes[id].xp+=tier.mult*(a<16?.9:1)*(mult>1.1?1.15:1)*(G.lesao?.4:1)}}
+        const g=1.05*art.w[k]*tier.mult*am*room*G.ef*mult*(id==='prep'?1:EST[G.artes[id].est||'pad'].tm)*(id===G.art0?(ORIGENS[G.orig].artMult||1):1)*(dry?1:rnd(.7,1.3));at[k]=Math.min(cap,at[k]+g);gains[k]=(gains[k]||0)+g;per[id][k]=(per[id][k]||0)+g}
+      if(!dry&&id!=='prep')G.artes[id].xp+=tier.mult*(a<16?.9:1)*(mult>1.1?1.15:1)*(G.lesao?.4:1)*(id===G.art0?(ORIGENS[G.orig].xpMult||1):1)}}
   if(!dry)for(const k in G.at)G.at[k]=r1(G.at[k]);return {gains,per,at}}
 function trainQuarter(mult){return trainCalc(mult,false).gains}
 const planMult=()=>(G.ev==='none'?1.25:1)*(G.lesao?.35:1);
