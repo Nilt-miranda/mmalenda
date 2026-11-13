@@ -353,7 +353,7 @@ const EST={rig:{nome:'Tradicional',desc:'segura as faixas bem além do mínimo (
 const estVar=e=>e==='rap'?1:r1(.85+R()*.35);
 const pickEst=not=>{const o=['rig','pad','pad','rap'].filter(e=>e!==not);return o[Math.floor(R()*o.length)]};
 const PREP={nome:'Preparação física',w:{car:1,for:.85,vel:.6,qx:.15}};
-const ACAD=[{nome:'Academia de bairro',fee:450,mult:1},{nome:'Equipe renomada',fee:1500,mult:1.25,rqf:.25,fama:10},{nome:'Centro de elite',fee:4500,mult:1.5,rqf:.5,fama:30}];
+const ACAD=[{nome:'Academia de bairro',fee:360,mult:1},{nome:'Equipe renomada',fee:1200,mult:1.25,rqf:.25,fama:10},{nome:'Centro de elite',fee:4500,mult:1.5,rqf:.5,fama:30}];
 const PREPT=[{nome:'Treino por conta',fee:0,mult:.8},{nome:'Preparador físico',fee:600,mult:1.1},{nome:'Centro de alto rendimento',fee:2400,mult:1.4,fama:20}];
 const MATRICULA=300;
 const SYN=[
@@ -784,7 +784,7 @@ function finance(){const it=[];let out=0,inc=0,fees=0;
     if(id==='prof'){if(profOn()){inc+=G.prof.valor;it.push(['Salário de professor · '+G.prof.acad,G.prof.valor])}continue}
     const f=feeOf(id),fb=feeBase(id);fees+=f;out+=f;
     if(id==='prep')it.push([PREPT[G.prepT].nome,-f]);
-    else it.push([ARTS[id].nome+' · '+acadName(id)+(profOn()&&G.prof.art===id?' (grátis pelo contrato de professor)':fb===0?' (paga pela família)':f<fb?' (desconto por dar aulas)':''),-f])}
+    else it.push([ARTS[id].nome+' · '+acadName(id)+(f?' ('+fmt$(f/3)+'/mês)':'')+(profOn()&&G.prof.art===id?' (grátis pelo contrato de professor)':fb===0?' (paga pela família)':f<fb?' (desconto por dar aulas)':''),-f])}
   const eqArts=Object.keys(G.artes).filter(id=>(G.plano[id]||0)>0);if(eqArts.length){let c=0;for(const id of eqArts)if(!(id===G.art0&&G.idade<18))c+=equipCost(id);
     if(equipOn()){it.push(['Kimonos e equipamento (patrocínio '+G.equip.marca+')',0]);if(G.equip.valor){inc+=G.equip.valor;it.push(['Ajuda de custo · '+G.equip.marca,G.equip.valor])}}
     else if(c){out+=c;fees+=c;it.push(['Kimonos, luvas e protetores',-c])}else it.push(['Kimono e equipamento (pagos pela família)',0])}
@@ -1001,7 +1001,7 @@ function mmaAfter(F,sum){const M=G.mma,r=F.res[0],n=G.npcs[F.off.npc],O=ORGS[M.o
   if(win&&F.bouts[0].o.rival){const rv=G.rivais.find(x=>x.id===n.id);if(rv&&rv.v>rv.d)sum.lines.push(['Rivalidade','Você está à frente no confronto']) }}
 
 /* ----- avanço do trimestre ----- */
-function canAdvance(){const f=finance();if(f.fees>Math.max(0,G.dinheiro)+f.inc)return {ok:false,why:'Faltam '+fmt$(f.fees-Math.max(0,G.dinheiro)-f.inc)+' para mensalidades'+(travelOf()?', inscrição e viagem':'')+'. Tire sessões, escolha outro evento, dê aulas ou trabalhe meio período.'};return {ok:true}}
+function canAdvance(){const f=finance();if(f.fees>Math.max(0,G.dinheiro)+f.inc)return {ok:false,why:'Faltam '+fmt$(f.fees-Math.max(0,G.dinheiro)-f.inc)+' para mensalidades'+(travelOf()?', inscrição e viagem':'')+'. Use "Ajustar ao orçamento": troca sessões de treino por trabalho de meio período, volta para a academia de bairro e tira o evento pago.'};return {ok:true}}
 function advanceQuarter(){const c=canAdvance();if(!c.ok){UI.toast=c.why;return false}
   const ev=evOptions().find(o=>o.key===G.ev&&o.ok)||{tipo:'none',key:'none'};
   const f=finance();G.dinheiro+=f.saldo;
@@ -1225,8 +1225,8 @@ function trainCard(){const mx=slotsMax(),u=usedSlots(),f=finance();
   const per=trainCalc(planMult(),true).per,prev=id=>{const g=per[id];if(!g)return 'Sem sessões: não evolui neste trimestre.';return 'Previsto: '+Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>'+'+String(r1(v)).replace('.',',')+' '+ATTRS[k]).join(' · ')};
   const rows=Object.keys(G.artes).map(id=>{const st=G.artes[id];
     return '<div class="trow"><div class="stack-s"><div class="row">'+beltHTML(id,st.r)+'<b>'+ARTS[id].nome+'</b></div><span class="tiny muted">Melhora '+gains(ARTS[id].w)+'</span><span class="tiny"><b>'+prev(id)+'</b> · '+ACAD[st.t].nome.toLowerCase()+' rende ×'+String(ACAD[st.t].mult).replace('.',',')+'</span>'+
-     '<div class="seg">'+ACAD.map((T,t)=>{const ok=tierOk(id,t);const fee=(id===G.art0&&G.idade<18&&t<=(G.orig==='classe'?1:0))?'grátis':fmt$(T.fee);return '<button data-a="tier" data-fast="1" data-art="'+id+'" data-t="'+t+'" aria-pressed="'+(st.t===t)+'" '+(ok.ok?'':'disabled')+' title="'+esc(ok.ok?T.nome+' · treino ×'+T.mult:ok.why)+'">'+SHORT_T[t]+' · '+fee+'</button>'}).join('')+'</div></div>'+step(id)+'</div>'}).join('');
-  const prep='<div class="trow"><div class="stack-s"><b>Preparação física</b><span class="tiny muted">Melhora '+gains(PREP.w)+'</span><span class="tiny"><b>'+prev('prep')+'</b></span><div class="seg">'+PREPT.map((T,t)=>{const ok=!T.fama||G.fama>=T.fama;return '<button data-a="ptier" data-fast="1" data-t="'+t+'" aria-pressed="'+(G.prepT===t)+'" '+(ok?'':'disabled')+' title="'+esc(ok?T.nome:'Exige fama '+T.fama)+'">'+['Sozinho','Preparador','Alto rendimento'][t]+' · '+(T.fee?fmt$(T.fee):'grátis')+'</button>'}).join('')+'</div></div>'+step('prep')+'</div>';
+     '<div class="seg">'+ACAD.map((T,t)=>{const ok=tierOk(id,t);const fee=(id===G.art0&&G.idade<18&&t<=(G.orig==='classe'?1:0))?'grátis':fmt$(T.fee/3)+'/mês';return '<button data-a="tier" data-fast="1" data-art="'+id+'" data-t="'+t+'" aria-pressed="'+(st.t===t)+'" '+(ok.ok?'':'disabled')+' title="'+esc(ok.ok?T.nome+' · treino ×'+T.mult:ok.why)+'">'+SHORT_T[t]+' · '+fee+'</button>'}).join('')+'</div></div>'+step(id)+'</div>'}).join('');
+  const prep='<div class="trow"><div class="stack-s"><b>Preparação física</b><span class="tiny muted">Melhora '+gains(PREP.w)+'</span><span class="tiny"><b>'+prev('prep')+'</b></span><div class="seg">'+PREPT.map((T,t)=>{const ok=!T.fama||G.fama>=T.fama;return '<button data-a="ptier" data-fast="1" data-t="'+t+'" aria-pressed="'+(G.prepT===t)+'" '+(ok?'':'disabled')+' title="'+esc(ok?T.nome:'Exige fama '+T.fama)+'">'+['Sozinho','Preparador','Alto rendimento'][t]+' · '+(T.fee?fmt$(T.fee/3)+'/mês':'grátis')+'</button>'}).join('')+'</div></div>'+step('prep')+'</div>';
   const trab='<div class="trow"><div class="stack-s"><b>Trabalho de meio período</b><span class="tiny muted">+'+fmt$(1200)+' por sessão, sem treino</span></div>'+step('trab')+'</div>';
   const aula=Object.keys(G.artes).filter(teachLvl).map(id=>{const lv=teachLvl(id);return '<div class="trow"><div class="stack-s"><b>Dar aulas de '+ARTS[id].nome+' · '+(lv===2?'turmas adultas':'turmas infantis')+'</b><span class="tiny muted">'+(lv===2?'+'+fmt$(adultVal(id))+' por sessão':'Acordo com o mestre: +'+fmt$(KIDS_VAL)+' por sessão')+' e −50% na mensalidade da academia por sessão. Reforça a técnica.</span></div>'+step('aula_'+id)+'</div>'}).join('')+
     (profOn()?'<div class="trow"><div class="stack-s"><b>Professor contratado · '+esc(G.prof.acad)+'</b><span class="tiny muted">Contrato: +'+fmt$(G.prof.valor)+' por trimestre e treino de '+ARTS[G.prof.art].nome+' grátis até o '+QN[G.prof.ate%4]+' de '+(G.ano0+Math.floor(G.prof.ate/4))+'</span></div><span class="chip ink">1 sessão fixa</span></div>':'');
@@ -1237,7 +1237,7 @@ function trainCard(){const mx=slotsMax(),u=usedSlots(),f=finance();
    '<span class="tot">Saldo do trimestre</span><span class="tot num">'+(f.saldo>0?'+':'')+fmt$(f.saldo)+'</span><span>Dinheiro depois</span><span class="num">'+fmt$(G.dinheiro+f.saldo)+'</span></div></section>'}
 function actionCard(){const c=canAdvance(),opts=evOptions(),sel=opts.find(o=>o.key===G.ev)||{nome:'Sem competição'};
   return '<section class="panel dark stack"><div class="between"><div style="min-width:0"><div class="label">Próximo passo</div><div class="h h-sm">'+esc(sel.nome)+'</div></div><button class="btn btn-gold" data-a="avancar" '+(c.ok?'':'disabled')+'>Avançar trimestre</button></div>'+
-   (c.ok?'':'<p class="small" style="color:#ff9d94">'+esc(c.why)+'</p>')+'<div><button class="lnk" data-a="aposentar">Encerrar a carreira</button></div></section>'}
+   (c.ok?'':'<p class="small" style="color:#ff9d94">'+esc(c.why)+'</p><div><button class="btn btn-sm btn-gold" data-a="orcamento">Ajustar ao orçamento</button></div>')+'<div><button class="lnk" data-a="aposentar">Encerrar a carreira</button></div></section>'}
 function mmaCard(){const M=G.mma,ros=M.ros,ip=ros.indexOf('P'),O=ORGS[M.org];
   const line=(id,i)=>{if(id==='P')return '<div class="me"><span class="num">'+(i===0?'C':i>10?'—':i)+'</span><span>Você</span><span class="num tiny">'+G.cartel.mma.v+'-'+G.cartel.mma.d+'</span></div>';
     const n=G.npcs[id];if(!n)return '';return '<div class="'+(i===0?'ch ':'')+(isRival(id)?'rv':'')+'"><span class="num">'+(i===0?'C':i)+'</span><span>'+esc(n.nome)+' '+cc(n.pais)+'</span><span class="num tiny">'+n.v+'-'+n.d+'</span></div>'};
@@ -1377,6 +1377,12 @@ const ACTN={
   trocar(d){const st=G.artes[d.art];if(G.view!=='hub'||!st||G.dinheiro<MATRICULA||(profOn()&&G.prof.art===d.art)||absQ()-(st.troca!=null?st.troca:-9)<4)return;G.dinheiro-=MATRICULA;st.est=pickEst(st.est);st.var=estVar(st.est);st.troca=absQ();st.acad=null;st.q=r1(st.q/2);
     news(G.nome+' troca de academia de '+ARTS[d.art].nome+'. Novo mestre: '+EST[st.est].nome.toLowerCase()+'.')},
   equip(d){const p=G.modal;if(!p||p.tipo!=='equip')return;if(d.i!==''&&d.i!=null){const o=p.ofs[+d.i];G.equip={marca:o.marca,valor:o.valor,ate:absQ()+o.dur-1};news(G.nome+' fecha patrocínio de equipamento com a '+o.marca+'.')}nextModal()},
+  orcamento(){if(G.view!=='hub')return;for(const id in G.artes){if(!(profOn()&&G.prof.art===id))G.artes[id].t=0}G.prepT=0;
+    if(!canAdvance().ok&&travelOf())G.ev='none';let g=0;
+    const falta=()=>!canAdvance().ok||G.dinheiro+finance().saldo<0;
+    while(falta()&&g++<12){const ok=canAdvance().ok,k=Object.keys(G.plano).find(k=>k!=='trab'&&k!=='prof'&&!k.startsWith('aula_')&&G.plano[k]>0&&k!==G.art0)||(G.plano[G.art0]>(ok?1:0)?G.art0:null);if(!k)break;G.plano[k]--;G.plano.trab=(G.plano.trab||0)+1}
+    if(canAdvance().ok&&G.dinheiro+finance().saldo<0)UI.toast='Plano ajustado, mas ainda fica negativo: o custo de vida pesa. Dar aulas ou um patrocínio resolvem.';
+    if(!canAdvance().ok)UI.toast='Não deu para fechar a conta.'},
   aposentar(){if(G.view==='hub'&&!G.modal)G.modal={tipo:'conf'}},
   confFim(){retire('escolha');UI.tab='trofeus'},
   voltar(){G.modal=null},
