@@ -234,6 +234,17 @@ p{margin:0}
 .medal.m1{background:var(--silver)}
 .medal.m2{background:var(--bronze);color:#fff}
 .medal.sm{width:38px;height:38px;font-size:14px}
+.medals{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:16px 10px}
+.mdl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;min-width:0}
+.mdl .rib{width:30px;height:28px;background:linear-gradient(90deg,var(--r1) 0 34%,var(--r2) 34% 66%,var(--r1) 66%);clip-path:polygon(0 0,100% 0,100% 62%,50% 100%,0 62%)}
+.mdl .disc{width:56px;height:56px;margin-top:-8px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:17px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.4),inset 0 0 0 7px rgba(0,0,0,.12),0 2px 5px rgba(0,0,0,.28);margin-bottom:4px}
+.mdl .disc span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+.mdl .disc.m0{background:radial-gradient(circle at 35% 30%,#fff3b8,#e9b53a 55%,#a8741a);color:#5a3d06}
+.mdl .disc.m1{background:radial-gradient(circle at 35% 30%,#fff,#c3c9d0 55%,#7d848c);color:#3a3f45}
+.mdl .disc.m2{background:radial-gradient(circle at 35% 30%,#ffd2b0,#c27a43 55%,#7a421c);color:#fff}
+.mdl b{font-size:12.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+input.err{box-shadow:0 0 0 2px var(--red)}
+.lnk.hof{font-weight:700;font-size:15px;text-align:left;padding:0}
 .trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .tro{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;background:#fff;border:1px solid var(--rule);border-radius:2px;padding:10px}
 .beltico{width:64px;height:30px;border-radius:4px;background:linear-gradient(90deg,#1b1b1b 0 22%,var(--gold) 22% 78%,#1b1b1b 78%);position:relative;flex:none;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
@@ -877,7 +888,7 @@ function migrate(g){if(!g)return null;if(g.v===2){const mp={8:12,9:13,10:14,11:1
     for(const m of g.med||[])if(mp[m.tier]!=null)m.tier=mp[m.tier];for(const t of g.trof||[])if(t.t==='med'&&mp[t.tier]!=null)t.tier=mp[t.tier];
     if(g.fight&&g.fight.k==='torneio'&&mp[g.fight.tier]!=null)g.fight.tier=mp[g.fight.tier];
     if(typeof g.ev==='string'){const x=/^X(\d+):(.*)$/.exec(g.ev);if(x&&mp[+x[1]]!=null)g.ev='X'+mp[+x[1]]+':'+x[2];if(g.ev==='T:bjj'&&g.q!==0)g.ev='none'}
-    g.v=3}if(g&&g.v===3){g.staff=g.staff||{};g.bens=g.bens||{};g.loc=g.loc||'BR';g.nomesR=g.nomesR||[];if(g.minha){g.minha.niv=g.minha.niv||0;g.minha.fil=g.minha.fil||0}}return g&&g.v===3?g:null}
+    g.v=3}if(g&&g.v===3){g.staff=g.staff||{};g.bens=g.bens||{};g.loc=g.loc||'BR';g.idadeMax=g.idadeMax||ri(Math.max(40,(g.idade||14)+1),46);g.nomesR=g.nomesR||[];if(g.minha){g.minha.niv=g.minha.niv||0;g.minha.fil=g.minha.fil||0}}return g&&g.v===3?g:null}
 function loadSave(){try{const s=localStorage.getItem(KEY);return migrate(s?JSON.parse(s):null)}catch(e){return null}}
 function dropSave(){try{localStorage.removeItem(KEY)}catch(e){}}
 function loadHall(){try{return JSON.parse(localStorage.getItem(HALL)||'[]')}catch(e){return []}}
@@ -960,7 +971,7 @@ function startCareer(d){const O=ORIGENS[d.orig],B=BIOS[d.bio],art=ARTS[d.art];
   G={v:3,nome:(d.nome||'').trim()||'Atleta',ap:(d.ap||'').trim(),sexo:d.sexo,bio:d.bio,orig:d.orig,art0:d.art,
     idade:14,ano:2026,ano0:2026,q:0,dinheiro:O.din,fama:0,pot:r1(rnd(O.pot[0],O.pot[1])),ef:O.ef,
     at:{},artes:{},prepT:0,plano:{},ev:'none',lutas:[],cartel:{},trof:[],marcos:[],news:[],med:[],rivais:[],npcs:{},
-    bolsa:null,patro:null,lesao:null,staff:{},bens:{},camp:null,nomesR:[],loc:'BR',desgaste:0,mma:null,ofertas:[],pend:[],view:'hub',modal:null,uid:0,fight:null,res:null,rep:null,ult:{},ganhoTotal:0};
+    bolsa:null,patro:null,lesao:null,staff:{},bens:{},camp:null,nomesR:[],loc:'BR',idadeMax:ri(40,46),desgaste:0,mma:null,ofertas:[],pend:[],view:'hub',modal:null,uid:0,fight:null,res:null,rep:null,ult:{},ganhoTotal:0};
   for(const k of AK){let v=24+rnd(0,8)+(art.w[k]||0)*14+(B.mod[k]||0)+(O.bonus?(art.w[k]||0)*O.bonus:0);
     if(k==='qx')v=38+rnd(0,8)+(B.mod.qx||0);G.at[k]=r1(clamp(v,10,62))}
   const rk=0,e0=pickEst();G.artes[d.art]={r:rk,xp:reqOf(d.art).xp[rk],q:0,qr:0,t:O.tier||0,soc:d.orig==='humilde',desde:2026,est:e0,var:estVar(e0)};
@@ -1279,12 +1290,12 @@ function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)|
     if(G.artes[M.art])G.artes[M.art].t=Math.max(G.artes[M.art].t,acadTier());}
   sponsorCheck();equipCheck();acadCheck();
   G.fama=r1(clamp(G.fama*.985,0,100));G.desgaste=r1(Math.max(0,G.desgaste-.4-(stOn('fisio')?.6:0)));
-  G.q++;if(G.q>3){G.q=0;G.ano++;G.idade++;yearly();rep.l.push(['ink','Você fez '+G.idade+' anos.']);ageBelts(rep);azulRegra(rep);if(G.idade===18)rep.l.push(['ink','Maioridade: agora você tem 4 sessões de treino por trimestre e paga o próprio custo de vida.'])}
+  G.q++;if(G.q>3){G.q=0;G.ano++;G.idade++;yearly();rep.l.push(['ink','Você fez '+G.idade+' anos.']);if(G.idade===(G.idadeMax||42)-1)rep.l.push(['red','O corpo dá sinais: esta deve ser a sua última temporada. Aproveite para fechar a carreira em alta.']);ageBelts(rep);azulRegra(rep);if(G.idade===18)rep.l.push(['ink','Maioridade: agora você tem 4 sessões de treino por trimestre e paga o próprio custo de vida.'])}
   if(G.prof&&G.prof.ate<absQ()){news('Termina o contrato de professor ('+G.prof.acad+').');rep.l.push(['ink','Terminou o contrato de professor ('+G.prof.acad+').']);G.prof=null}
   ageing();
   if(G.mma)genOffers();
   fixPlan();G.ev=defaultEv();
-  if(G.idade>=42&&!G.pend.some(p=>p.tipo==='fim'))G.pend.push({tipo:'fim',motivo:'idade'});
+  if(G.idade>=(G.idadeMax||42)&&!G.pend.some(p=>p.tipo==='fim'))G.pend.push({tipo:'fim',motivo:'idade'});
   else if(G.desgaste>=100&&!G.pend.some(p=>p.tipo==='fim'))G.pend.push({tipo:'fim',motivo:'saude'});
   if(G.dinheiro<-8000)rep.l.push(['red','Dívidas acima de '+fmt$(8000)+': corte gastos ou trabalhe meio período.']);
   G.rep=rep;G.view='hub';G.modal={tipo:'rep'};G.fight=null;G.res=null}
@@ -1298,20 +1309,27 @@ function legacy(){let s=0;
   if(G.minha)s+=10+Math.min(40,Math.floor(G.minha.alunos/50)*4)+(G.minha.niv||0)*2+(G.minha.fil||0)*3;
   for(const b of BENS)if(temBem(b.id))s+=b.leg+(b.id==='social'?Math.min(15,G.ano-G.bens.social):0);
   s+=G.fama*.3;s=Math.round(s);const L=LEG.find(x=>s>=x[0]);return {s,tier:L[1],desc:L[2]}}
-function bestTitle(){const b=G.trof.filter(t=>t.t==='belt').sort((a,b)=>b.org-a.org||b.def-a.def)[0];if(b)return b.nome+(b.def?' ('+b.def+' defesas)':'');
+function bestTitle(){const b=G.trof.filter(t=>t.t==='belt').sort((a,b)=>b.org-a.org||b.def-a.def)[0];if(b)return b.nome+(b.def?' ('+b.def+(b.def>1?' defesas)':' defesa)'):'');
   const m=G.trof.filter(t=>t.t==='med').sort((a,b)=>(TIERS[b.tier].leg[0]-TIERS[a.tier].leg[0])||(a.metal-b.metal)||((b.bf||1)-(a.bf||1)))[0];
-  if(m)return ['Ouro','Prata','Bronze'][m.metal]+' no '+m.nome+' '+m.ano;return 'Sem títulos'}
+  if(m)return ['Ouro','Prata','Bronze'][m.metal]+(/^Jogos/.test(m.nome)?' nos ':' no ')+m.nome+(/\d{4}$/.test(m.nome)?'':' '+m.ano);return 'Sem títulos'}
+/* resumo da carreira guardado no Hall da Fama, para abrir o perfil depois */
+function snapshot(g){g=g||G;return {nome:g.nome,ap:g.ap,sexo:g.sexo,art0:g.art0,orig:g.orig,idade:g.idade,ano0:g.ano0,ano:g.ano,fim:g.fimMotivo,legado:g.legado,
+  cartel:g.cartel,artes:Object.fromEntries(Object.entries(g.artes).map(([k,s])=>[k,{r:s.r,g:s.g}])),
+  trof:g.trof.map(t=>t.t==='med'?{t:'med',metal:t.metal,nome:t.nome,cat:t.cat,ano:t.ano,tier:t.tier}:{t:'belt',nome:t.nome,classe:t.classe,ano:t.ano,fim:t.fim,def:t.def,org:t.org}),
+  marcos:(g.marcos||[]).map(m=>({ano:m.ano,idade:m.idade,t:m.t})),minha:g.minha?{nome:g.minha.nome,alunos:g.minha.alunos,fil:g.minha.fil||0}:null,
+  bens:Object.keys(g.bens||{}).filter(k=>g.bens[k]!=null),loc:g.loc||'BR',dinheiro:Math.round(g.dinheiro),fama:Math.round(g.fama)}}
+const fixBest=s=>String(s||'').replace(/^(Ouro|Prata|Bronze) no (Jogos Olímpicos)/,'$1 nos $2').replace(/ (\d{4}) \1$/,' $1');
 function retire(motivo){const L=legacy();G.fimMotivo=motivo||'escolha';G.legado=L;G.view='legacy';G.modal=null;G.pend=[];
   marco('Aposentadoria aos '+G.idade+' anos');
-  const h=loadHall();h.push({nome:G.nome,s:L.s,tier:L.tier,ano:G.ano,idade:G.idade,best:bestTitle()});h.sort((a,b)=>b.s-a.s);saveHall(h.slice(0,10))}
+  const h=loadHall();h.push({nome:G.nome,s:L.s,tier:L.tier,ano:G.ano,idade:G.idade,best:bestTitle(),p:snapshot()});h.sort((a,b)=>b.s-a.s);saveHall(h.slice(0,10))}
 /* ================= telas ================= */
 const $=s=>document.querySelector(s);
 const SHORT_T=['Bairro','Renomada','Elite'];
 function beltHTML(id,r,sz){const A=ARTS[id];
   if(A.cores){const top=r===A.ranks.length-1,tip=A.tips&&A.tips[r];
-    if(top&&sz!=='sm'&&DEG[id]&&G&&G.artes&&G.artes[id]&&G.artes[id].r===r&&gOf(id)>=DEG[id].coral)return '<span class="belt np'+(sz?' '+sz:'')+'" style="--c:repeating-linear-gradient(90deg,#c8312b 0 7px,'+(id==='bjj'?'#151515':'#f4f4f4')+' 7px 14px)" title="'+esc(degName(id,gOf(id)))+'"></span>';
+    if(top&&!sz&&UI.view==='game'&&DEG[id]&&G&&G.artes&&G.artes[id]&&G.artes[id].r===r&&gOf(id)>=DEG[id].coral)return '<span class="belt np'+(sz?' '+sz:'')+'" style="--c:repeating-linear-gradient(90deg,#c8312b 0 7px,'+(id==='bjj'?'#151515':'#f4f4f4')+' 7px 14px)" title="'+esc(degName(id,gOf(id)))+'"></span>';
     const cls=(A.tipo==='kruang'?' k'+(tip?' kp':''):(id==='bjj'?'':' np'))+(sz?' '+sz:'');
-    const me=id==='bjj'&&sz!=='sm'&&G&&G.artes&&G.artes[id]&&G.artes[id].r===r,ns=me?stripesOf(id):0;
+    const me=id==='bjj'&&!sz&&UI.view==='game'&&G&&G.artes&&G.artes[id]&&G.artes[id].r===r,ns=me?stripesOf(id):0;
     return '<span class="belt'+cls+'" style="--c:'+A.cores[r]+(top&&id==='bjj'?';--tip:#c8312b':tip?';--tip:'+tip:'')+(ns>4?';--tw:19px':'')+'" title="'+esc(A.ranks[r]+(ns?' · '+ns+' grau'+(ns>1?'s':''):''))+'">'+(ns?'<span class="sts">'+'<i></i>'.repeat(ns)+'</span>':'')+'</span>'}
   return '<span class="pips" title="'+esc(A.ranks[r])+'">'+A.ranks.map((_,i)=>'<i class="'+(i<=r?'on':'')+'"></i>').join('')+'</span>'}
 function cc(p){return '<span class="cc">'+esc(p)+'</span>'}
@@ -1337,13 +1355,32 @@ function homeView(){const s=G||loadSave();const hall=loadHall();
    '<li><div><b>Vá para o MMA.</b> <span class="muted">Escolha a categoria de peso, suba no ranking, troque de organização e defenda o cinturão.</span></div></li></ol></section>'+
    '<section class="panel stack"><div><div class="label">As seis artes</div><h2 class="h h-sm">Forças e fraquezas</h2></div><div class="artlist">'+
    ART_IDS.map(id=>'<div class="artrow">'+beltHTML(id,ARTS[id].ranks.length-1)+'<div class="small"><b>'+ARTS[id].nome+'</b> <span class="muted">'+esc(ARTS[id].forte)+'</span></div></div>').join('')+'</div>'+
-   (hall.length?'<div class="label">Hall da fama deste navegador</div><div class="tbl"><table><tbody>'+hall.slice(0,6).map(h=>'<tr><td><b>'+esc(h.nome)+'</b><div class="tiny muted">'+esc(h.best)+'</div></td><td>'+esc(h.tier)+'</td><td class="num">'+h.s+'</td></tr>').join('')+'</tbody></table></div>':'')+
+   (hall.length?'<div class="label">Hall da fama deste navegador</div><div class="tbl"><table><tbody>'+hall.slice(0,6).map((h,i)=>'<tr><td><button class="lnk hof" data-a="perfil" data-i="'+i+'">'+esc(h.nome)+'</button><div class="tiny muted">'+esc(fixBest(h.best))+'</div></td><td>'+esc(h.tier)+'</td><td class="num">'+h.s+'</td></tr>').join('')+'</tbody></table></div>':'')+
    '<p class="tiny muted">Os torneios amadores usam os nomes reais dos circuitos (CBJJ, IBJJF, ADCC, IJF, IFMA, UWW, WKF e outros), e as academias e patrocinadores usam marcas reais. Jogo de fã, sem vínculo com essas entidades e marcas. As organizações de MMA (Shooto Brasil, Jungle Fight, LFA e UFC) também são reais; todos os atletas são fictícios.</p></section></div>'}
 
+function hallProfile(i){const h=loadHall()[i];if(!h)return null;if(h.p)return h.p;const s=loadSave();
+  if(s&&s.view==='legacy'&&s.nome===h.nome&&s.legado&&s.legado.s===h.s)return snapshot(s);return null}
+function perfilView(){const hall=loadHall(),h=hall[UI.perfil];if(!h)return '<section class="panel"><p>Perfil não encontrado.</p><button class="btn btn-sm" data-a="menu">Voltar</button></section>';
+  const p=hallProfile(UI.perfil),stat=(l,v)=>'<div><div class="label">'+l+'</div><div class="h num">'+v+'</div></div>';
+  const mot={escolha:'aposentadoria por escolha',idade:'aposentadoria por idade',saude:'aposentadoria por ordem médica'};
+  const head='<section class="panel dark stack"><div class="label">Hall da fama · '+esc(h.tier)+(p&&p.fim?' · '+mot[p.fim]:'')+'</div><div class="leg-h">'+esc(h.nome)+(p&&p.ap?' <span style="font-size:.5em">"'+esc(p.ap)+'"</span>':'')+'</div>';
+  if(!p)return '<div class="stack">'+head+'<div class="row" style="gap:28px">'+stat('Legado',h.s)+stat('Idade final',h.idade)+stat('Último ano',h.ano)+'</div><div class="small">Maior conquista: <b>'+esc(fixBest(h.best))+'</b></div><p class="small">Esta carreira terminou numa versão antiga do jogo, que só guardava o resumo. As próximas aposentadorias guardam o perfil completo.</p><div><button class="btn btn-gold" data-a="menu">Voltar</button></div></section></div>';
+  const meds=p.trof.filter(t=>t.t==='med'),belts=p.trof.filter(t=>t.t==='belt'),c=p.cartel||{},mma=c.mma;
+  const artes=Object.entries(p.artes).map(([id,s])=>{const A=ARTS[id];if(!A)return '';const top=s.r===A.ranks.length-1;const nm=top&&DEG[id]?degName(id,s.g!=null?s.g:DEG[id].ini):A.ranks[s.r];
+    return '<div class="artrow">'+beltHTML(id,s.r)+'<div class="small"><b>'+A.nome+'</b> <span class="muted">'+esc(nm)+'</span></div></div>'}).join('');
+  const fora=[p.minha?esc(p.minha.nome)+' ('+p.minha.alunos+' alunos'+(p.minha.fil?', '+p.minha.fil+' filiais':'')+')':''].concat((p.bens||[]).map(k=>{const b=BENS.find(x=>x.id===k);return b?(k==='copa'?'Copa '+esc(p.nome.split(' ').pop()):b.nome.toLowerCase()):''})).filter(Boolean);
+  const cart=Object.entries(c).filter(([k,v])=>v&&(v.v||v.d)).map(([k,v])=>'<span class="chip">'+esc(SPN(k))+' '+v.v+'-'+v.d+(v.e?'-'+v.e:'')+'</span>').join(' ');
+  return '<div class="stack">'+head+(p.legado?'<p style="font-size:17px;max-width:640px">'+esc(p.legado.desc)+'</p>':'')+
+   '<div class="row" style="gap:28px">'+stat('Legado',h.s)+stat('Idade final',p.idade)+stat('Carreira',p.ano0+'–'+p.ano)+stat('Cinturões',belts.length)+stat('Medalhas',meds.length)+(mma?stat('MMA',mma.v+'-'+mma.d+'-'+(mma.e||0)):'')+stat('Dinheiro',fmt$(p.dinheiro))+'</div>'+
+   '<div class="small">Maior conquista: <b>'+esc(fixBest(h.best))+'</b> · Começou no '+esc(ARTS[p.art0]?ARTS[p.art0].nome:'')+(p.loc&&p.loc!=='BR'?' · terminou morando '+({USA:'nos Estados Unidos',EUR:'na Europa (Portugal)'}[p.loc]||'fora'):'')+'</div>'+
+   (fora.length?'<div class="small">Fora do tatame: '+fora.join(' · ')+'</div>':'')+
+   '<div><button class="btn btn-gold" data-a="menu">Voltar ao início</button></div></section>'+
+   '<section class="panel stack"><div><div class="label">Graduações</div><h2 class="h h-sm">Faixas</h2></div><div class="artlist">'+artes+'</div>'+(cart?'<div class="label">Cartel</div><div class="row">'+cart+'</div>':'')+'</section>'+
+   trophyHTML(p.trof,p.marcos)+'</div>'}
 function createView(){const d=UI.draft;
   const pk=(f,v,inner)=>'<button class="pick" data-a="draft" data-fast="1" data-f="'+f+'" data-v="'+v+'" aria-pressed="'+(d[f]===v)+'">'+inner+'</button>';
   return '<section class="panel stack" style="max-width:1000px;margin:0 auto"><div><div class="label">Nova carreira</div><h2 class="h">Quem vai subir no tatame?</h2></div>'+
-   '<div class="grid2"><label class="field"><span class="label">Nome</span><input id="f-nome" data-f="nome" value="'+esc(d.nome)+'" maxlength="28" placeholder="Ex.: Rafael Souza" autocomplete="off"></label>'+
+   '<div class="grid2"><label class="field"><span class="label">Nome (obrigatório)</span><input id="f-nome" data-f="nome" value="'+esc(d.nome)+'" maxlength="28" placeholder="Ex.: Rafael Souza" autocomplete="off" required aria-required="true"'+(UI.nomeErro?' aria-invalid="true" class="err"':'')+'>'+(UI.nomeErro?'<span class="tiny" style="color:var(--red)">Escreva o nome do atleta.</span>':'')+'</label>'+
    '<label class="field"><span class="label">Apelido (opcional)</span><input id="f-ap" data-f="ap" value="'+esc(d.ap)+'" maxlength="18" placeholder="Ex.: Furacão" autocomplete="off"></label></div>'+
    '<div class="stack-s"><span class="label">Categoria das competições</span><div class="seg">'+
    [['m','Masculina'],['f','Feminina']].map(([v,l])=>'<button data-a="draft" data-fast="1" data-f="sexo" data-v="'+v+'" aria-pressed="'+(d.sexo===v)+'">'+l+'</button>').join('')+'</div></div>'+
@@ -1353,7 +1390,7 @@ function createView(){const d=UI.draft;
    '<div class="stack-s"><span class="label">Origem</span><div class="picks">'+Object.entries(ORIGENS).map(([k,O])=>pk('orig',k,'<span class="pt">'+O.nome+'</span><span class="small muted">'+O.desc+'</span><span class="tiny">Dinheiro inicial: '+fmt$(O.din)+'</span>')).join('')+'</div></div>'+
    '<div class="row"><button class="btn btn-gold" data-a="criar">Começar aos 14 anos</button><button class="btn btn-ghost" data-a="menu">Voltar</button></div></section>'}
 
-function gameView(){switch(G.view){case 'pre':return preView();case 'fight':return fightView();case 'result':return resultView();case 'legacy':return legacyView();default:return hubView()}}
+function gameView(){if(UI.view==='perfil')return perfilView();switch(G.view){case 'pre':return preView();case 'fight':return fightView();case 'result':return resultView();case 'legacy':return legacyView();default:return hubView()}}
 function hubView(){const t=UI.tab;
   const tabs='<div class="tabs" role="tablist">'+[['carreira','Carreira'],['cartel','Cartel'],['trofeus','Troféus']].map(([k,l])=>'<button data-a="tab" data-fast="1" data-t="'+k+'" aria-pressed="'+(t===k)+'">'+l+'</button>').join('')+'</div>';
   if(t==='cartel')return tabs+cartelView();if(t==='trofeus')return tabs+trophyView();
@@ -1371,7 +1408,7 @@ function degHTML(id){const Dg=DEG[id];if(!Dg)return '<div class="tiny"><b>Gradua
   let s=pr?'<div class="tiny">Prestígio da graduação: <b>+'+Math.round(pr*8)+'%</b> no valor das suas aulas e <b>+'+Math.round(pr*7)+'%</b> na mensalidade da sua academia.</div>':'';
   if(q){const gq=st.gq||0,falta=Math.max(0,q.q-gq),ida=G.idade<q.age;
     s+='<div class="tiny muted">Próximo: <b>'+degName(id,q.g)+'</b> em '+(falta?falta+' trimestre(s)':'até o fim do trimestre')+(ida?', com idade mínima de '+q.age+' anos':'')+'.</div><div class="meter gold"><i style="width:'+pct(clamp(gq/q.q,0,1))+'%"></i></div>';
-    const ac=coralAge(id);if(ac)s+='<div class="tiny muted">'+(ac>42?'Pelas regras, a faixa coral viria por volta dos '+ac+' anos, depois da carreira de atleta.':'No ritmo atual, faixa coral por volta dos '+ac+' anos.')+'</div>'}
+    const ac=coralAge(id);if(ac)s+='<div class="tiny muted">'+(ac>(G.idadeMax||42)?'Pelas regras, a faixa coral viria por volta dos '+ac+' anos, depois da carreira de atleta.':'No ritmo atual, faixa coral por volta dos '+ac+' anos.')+'</div>'}
   else s+='<div class="tiny"><b>Graduação máxima do jogo.</b></div>';
   s+='<div class="tiny muted">'+(id==='bjj'?'IBJJF: graus a cada 3 anos do 1º ao 3º e a cada 5 anos do 4º ao 6º; a coral (7º grau) vem 7 anos depois do 6º, são 31 anos de faixa preta.':'Dans por tempo e idade mínima'+(judoAtleta()?' (tabela de atleta de Mundial/Olimpíada: tempo pela metade)':'')+'. Campeão olímpico ganha 1 dan por mérito. 6º dan: faixa coral (vermelha e branca).')+'</div>';
   return s}
@@ -1488,13 +1525,15 @@ function cartelView(){const sps=Object.keys(G.cartel),f=UI.cartelSp;const L=G.lu
    '<div class="row">'+(sps.length?sps.map(sp=>{const c=G.cartel[sp];return '<span class="chip line">'+SPN(sp)+' <b class="num">'+c.v+'-'+c.d+(c.e?'-'+c.e:'')+'</b>'+(c.ko?' · '+c.ko+' KO':'')+(c.sub?' · '+c.sub+' fin.':'')+'</span>'}).join(''):'<span class="muted">Nenhuma luta ainda.</span>')+'</div>'+
    (sps.length>1?'<div class="seg">'+['todos'].concat(sps).map(sp=>'<button data-a="csp" data-fast="1" data-s="'+sp+'" aria-pressed="'+(f===sp)+'">'+(sp==='todos'?'Todas':SPN(sp))+'</button>').join('')+'</div>':'')+
    (L.length?'<div class="tbl"><table><thead><tr><th>Ano</th><th>Evento</th><th>Adversário</th><th>Res.</th><th>Método</th></tr></thead><tbody>'+L.map(l=>'<tr><td class="num">'+l.ano+'<div class="tiny muted">'+l.idade+' anos</div></td><td>'+esc(l.ev)+'<div class="tiny muted">'+esc(l.fase)+'</div></td><td>'+esc(l.op)+' '+cc(l.pais)+(l.rival?' <span class="chip red">rival</span>':'')+'</td><td><span class="chip '+(l.res==='V'?'green':l.res==='D'?'red':'')+'">'+l.res+'</span></td><td class="small">'+esc(l.met)+(l.rd?' · R'+l.rd:'')+'</td></tr>').join('')+'</tbody></table></div>':'')+'</section>'}
-function trophyView(){const belts=G.trof.filter(t=>t.t==='belt'),meds=G.trof.filter(t=>t.t==='med');
+function ribOf(t){const T=TIERS[t];if(T.olimp)return ['#0081c8','#fcb131'];if(t===4)return ['#151515','#d4a017'];if(T.pf)return ['#009c3b','#ffdf00'];if(t===6||t===7)return ['#b21f2d','#f4f4f4'];if([8,9,10,11].includes(t))return ['#1d3f8f','#f4f4f4'];return [['#c8312b','#f4f4f4'],['#1d6b3a','#f4f4f4'],['#1d3f8f','#f4f4f4'],['#151515','#e2a72e']][Math.min(3,t)]}
+function trophyView(){return trophyHTML(G.trof,G.marcos)}
+function trophyHTML(trof,marcos){const belts=trof.filter(t=>t.t==='belt'),meds=trof.filter(t=>t.t==='med');
   const grp=[...new Set(meds.map(m=>m.tier))].sort((a,b)=>TIERS[b].leg[0]-TIERS[a].leg[0]).map(tier=>[tier,meds.filter(m=>m.tier===tier).sort((a,b)=>a.metal-b.metal||b.ano-a.ano)]).filter(x=>x[1].length);
-  const tile=m=>'<div class="tro"><div class="medal sm m'+m.metal+'">'+['1º','2º','3º'][m.metal]+'</div><div><b>'+esc(m.nome)+'</b><div class="tiny muted">'+esc(m.cat)+' · '+m.ano+'</div></div></div>';
+  const tile=m=>'<div class="mdl" title="'+esc(['Ouro','Prata','Bronze'][m.metal]+' · '+m.nome+' · '+m.cat+' · '+m.ano)+'"><div class="rib" style="--r1:'+ribOf(m.tier)[0]+';--r2:'+ribOf(m.tier)[1]+'"></div><div class="disc m'+m.metal+'"><span>'+(m.metal+1)+'º</span></div><b>'+esc(m.nome)+'</b><span class="tiny muted">'+esc(m.cat)+' · '+m.ano+'</span></div>';
   return '<div class="stack"><section class="panel stack"><div><div class="label">Sala de troféus</div><h2 class="h">Cinturões</h2></div>'+
-   (belts.length?'<div class="trophies">'+belts.map(b=>'<div class="tro"><div class="beltico" aria-hidden="true"></div><div><b>'+esc(b.nome)+'</b><div class="tiny muted">'+esc(b.classe)+' · '+b.ano+(b.fim?'–'+b.fim:' · atual')+(b.def?' · '+b.def+' defesa(s)':'')+'</div></div></div>').join('')+'</div>':'<p class="muted">Nenhum cinturão ainda. Ele está no MMA profissional.</p>')+'</section>'+
-   '<section class="panel stack"><div><div class="label">Medalhas · '+meds.length+'</div><h2 class="h">Campeonatos</h2></div>'+(grp.length?grp.map(([tier,ms])=>'<div class="stack-s"><div class="label">'+(TIERS[tier].pf||tier>=4?evName('bjj',tier):TIERS[tier].nome)+'</div><div class="trophies">'+ms.map(tile).join('')+'</div></div>').join(''):'<p class="muted">Nenhuma medalha ainda.</p>')+'</section>'+
-   '<section class="panel stack"><div><div class="label">Marcos</div><h2 class="h h-sm">Linha do tempo</h2></div><div class="timeline">'+G.marcos.map(m=>'<div><span class="num tiny muted">'+m.ano+' · '+m.idade+'a</span><span>'+esc(m.t)+'</span></div>').join('')+'</div></section></div>'}
+   (belts.length?'<div class="trophies">'+belts.map(b=>'<div class="tro"><div class="beltico" aria-hidden="true"></div><div><b>'+esc(b.nome)+'</b><div class="tiny muted">'+esc(b.classe)+' · '+b.ano+(b.fim?'–'+b.fim:' · atual')+(b.def?' · '+b.def+' defesa(s)':'')+'</div></div></div>').join('')+'</div>':'<p class="muted">Nenhum cinturão ainda. Os cinturões são disputados no MMA profissional.</p>')+'</section>'+
+   '<section class="panel stack"><div><div class="label">Medalhas · '+meds.length+'</div><h2 class="h">Campeonatos</h2></div>'+(grp.length?grp.map(([tier,ms])=>'<div class="stack-s"><div class="label">'+(TIERS[tier].olimp?'Jogos Olímpicos':TIERS[tier].pf||tier>=4?evName('bjj',tier):TIERS[tier].nome)+' · '+[[0,'ouro'],[1,'prata'],[2,'bronze']].map(([k,n])=>{const c=ms.filter(x=>x.metal===k).length;return c?c+' '+n+(c>1?'s':''):''}).filter(Boolean).join(' · ')+'</div><div class="medals">'+ms.map(tile).join('')+'</div></div>').join(''):'<p class="muted">Nenhuma medalha ainda.</p>')+'</section>'+
+   '<section class="panel stack"><div><div class="label">Marcos</div><h2 class="h h-sm">Linha do tempo</h2></div><div class="timeline">'+marcos.map(m=>'<div><span class="num tiny muted">'+m.ano+' · '+m.idade+'a</span><span>'+esc(m.t)+'</span></div>').join('')+'</div></section></div>'}
 
 function preView(){const F=G.fight,pa=effA(F.sp==='mma'?'mma':''),adv=advice(F.sp,pa,F.bouts.map(b=>b.a));
   if(F.k==='torneio'){const e=F.est;
@@ -1579,10 +1618,12 @@ function nextModal(){G.modal=G.pend.length?G.pend.shift():null}
 function fstep(d){const F=G&&G.fight;return F&&F.S&&String(F.step)===String(d.step)?F:null}
 const ACTN={
   menu(){UI.view='home'},
+  perfil(d){UI.perfil=+d.i;UI.view='perfil'},
   novo(){UI.view='create';UI.tab='carreira';UI.draft={nome:'',ap:'',sexo:'m',bio:'medio',orig:'humilde',art:'bjj'}},
   continuar(){if(!G)G=loadSave();if(G){UI.view='game';if(G.view==='legacy')UI.tab='trofeus';else if(G.view==='hub'&&azulRegra(null))UI.toast='Pela regra das federações, '+azulMotivo()+' não compete na branca: seu Jiu-Jitsu passou para a faixa azul.'}},
   draft(d){UI.draft[d.f]=d.v},
-  criar(){const n=document.getElementById('f-nome'),a=document.getElementById('f-ap');if(n)UI.draft.nome=n.value;if(a)UI.draft.ap=a.value;startCareer(UI.draft);UI.view='game';UI.tab='carreira';UI.est={}},
+  criar(){const n=document.getElementById('f-nome'),a=document.getElementById('f-ap');if(n)UI.draft.nome=n.value;if(a)UI.draft.ap=a.value;
+    if(!(UI.draft.nome||'').trim()){UI.toast='Escreva o nome do atleta para começar.';UI.nomeErro=true;return}UI.nomeErro=false;startCareer(UI.draft);UI.view='game';UI.tab='carreira';UI.est={}},
   tab(d){UI.tab=d.t},tabLeg(d){UI.tab=d.t},
   csp(d){UI.cartelSp=d.s},
   ev(d){if(G.view==='hub')G.ev=d.k},
@@ -1653,7 +1694,7 @@ const FEM=[[/\bEle\b/g,'Ela'],[/\bele\b/g,'ela'],[/\bdele\b/g,'dela'],[/Campeão
   [/lesionado/g,'lesionada'],[/Lesionado/g,'Lesionada'],[/Eliminado/g,'Eliminada'],[/Classificado/g,'Classificada'],[/Os dois/g,'As duas'],[/finalizado/g,'finalizada'],[/nocauteado/g,'nocauteada'],[/Seu rival/g,'Sua rival'],[/seu rival/g,'sua rival'],[/o rival /g,'a rival ']];
 const gx=s=>(G&&G.sexo==='f'&&UI.view==='game')?FEM.reduce((t,[a,b])=>t.replace(a,b),s):s;
 function render(){const app=$('#app');if(!app)return;let html;
-  try{html=UI.view==='home'?homeView():UI.view==='create'?createView():gameView()}catch(e){console.error(e);html='<section class="panel"><b>Algo deu errado ao desenhar esta tela.</b><p class="small muted">'+esc(e.message)+'</p><button class="btn btn-sm" data-a="menu">Menu</button></section>'}
+  try{html=UI.view==='home'?homeView():UI.view==='create'?createView():UI.view==='perfil'?perfilView():gameView()}catch(e){console.error(e);html='<section class="panel"><b>Algo deu errado ao desenhar esta tela.</b><p class="small muted">'+esc(e.message)+'</p><button class="btn btn-sm" data-a="menu">Menu</button></section>'}
   app.innerHTML=gx(html);$('#board-mid').innerHTML=boardMid();
   const md=$('#modal');if(UI.view==='game'&&G&&G.modal){md.innerHTML=gx(modalView());md.hidden=false}else{md.hidden=true;md.innerHTML=''}
   const key=UI.view+'|'+(G?G.view+'|'+(G.fight?G.fight.bi:''):'')+'|'+UI.tab;if(key!==lastKey){lastKey=key;try{window.scrollTo(0,0)}catch(e){}}
