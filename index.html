@@ -237,8 +237,10 @@ p{margin:0}
 .medals{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:16px 10px}
 .mdl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;min-width:0}
 .mdl .rib{width:30px;height:28px;background:linear-gradient(90deg,var(--r1) 0 34%,var(--r2) 34% 66%,var(--r1) 66%);clip-path:polygon(0 0,100% 0,100% 62%,50% 100%,0 62%)}
-.mdl .disc{width:56px;height:56px;margin-top:-8px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:17px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.4),inset 0 0 0 7px rgba(0,0,0,.12),0 2px 5px rgba(0,0,0,.28);margin-bottom:4px}
-.mdl .disc span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+.mdl .disc{width:62px;height:62px;margin-top:-8px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:17px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.4),inset 0 0 0 7px rgba(0,0,0,.12),0 2px 5px rgba(0,0,0,.28);margin-bottom:4px}
+.mdl .disc span{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18);font-size:15px;line-height:1}
+.mdl .disc small{font-family:var(--mono,monospace);font-size:8.5px;font-weight:800;letter-spacing:.02em;margin-bottom:2px}
+.mdl .disc small.lg{font-size:7px;letter-spacing:0}
 .mdl .disc.m0{background:radial-gradient(circle at 35% 30%,#fff3b8,#e9b53a 55%,#a8741a);color:#5a3d06}
 .mdl .disc.m1{background:radial-gradient(circle at 35% 30%,#fff,#c3c9d0 55%,#7d848c);color:#3a3f45}
 .mdl .disc.m2{background:radial-gradient(circle at 35% 30%,#ffd2b0,#c27a43 55%,#7a421c);color:#fff}
@@ -1315,7 +1317,7 @@ function bestTitle(){const b=G.trof.filter(t=>t.t==='belt').sort((a,b)=>b.org-a.
 /* resumo da carreira guardado no Hall da Fama, para abrir o perfil depois */
 function snapshot(g){g=g||G;return {nome:g.nome,ap:g.ap,sexo:g.sexo,art0:g.art0,orig:g.orig,idade:g.idade,ano0:g.ano0,ano:g.ano,fim:g.fimMotivo,legado:g.legado,
   cartel:g.cartel,artes:Object.fromEntries(Object.entries(g.artes).map(([k,s])=>[k,{r:s.r,g:s.g}])),
-  trof:g.trof.map(t=>t.t==='med'?{t:'med',metal:t.metal,nome:t.nome,cat:t.cat,ano:t.ano,tier:t.tier}:{t:'belt',nome:t.nome,classe:t.classe,ano:t.ano,fim:t.fim,def:t.def,org:t.org}),
+  trof:g.trof.map(t=>t.t==='med'?{t:'med',metal:t.metal,nome:t.nome,cat:t.cat,ano:t.ano,tier:t.tier,art:t.art}:{t:'belt',nome:t.nome,classe:t.classe,ano:t.ano,fim:t.fim,def:t.def,org:t.org}),
   marcos:(g.marcos||[]).map(m=>({ano:m.ano,idade:m.idade,t:m.t})),minha:g.minha?{nome:g.minha.nome,alunos:g.minha.alunos,fil:g.minha.fil||0}:null,
   bens:Object.keys(g.bens||{}).filter(k=>g.bens[k]!=null),loc:g.loc||'BR',dinheiro:Math.round(g.dinheiro),fama:Math.round(g.fama)}}
 const fixBest=s=>String(s||'').replace(/^(Ouro|Prata|Bronze) no (Jogos Olímpicos)/,'$1 nos $2').replace(/ (\d{4}) \1$/,' $1');
@@ -1525,11 +1527,15 @@ function cartelView(){const sps=Object.keys(G.cartel),f=UI.cartelSp;const L=G.lu
    '<div class="row">'+(sps.length?sps.map(sp=>{const c=G.cartel[sp];return '<span class="chip line">'+SPN(sp)+' <b class="num">'+c.v+'-'+c.d+(c.e?'-'+c.e:'')+'</b>'+(c.ko?' · '+c.ko+' KO':'')+(c.sub?' · '+c.sub+' fin.':'')+'</span>'}).join(''):'<span class="muted">Nenhuma luta ainda.</span>')+'</div>'+
    (sps.length>1?'<div class="seg">'+['todos'].concat(sps).map(sp=>'<button data-a="csp" data-fast="1" data-s="'+sp+'" aria-pressed="'+(f===sp)+'">'+(sp==='todos'?'Todas':SPN(sp))+'</button>').join('')+'</div>':'')+
    (L.length?'<div class="tbl"><table><thead><tr><th>Ano</th><th>Evento</th><th>Adversário</th><th>Res.</th><th>Método</th></tr></thead><tbody>'+L.map(l=>'<tr><td class="num">'+l.ano+'<div class="tiny muted">'+l.idade+' anos</div></td><td>'+esc(l.ev)+'<div class="tiny muted">'+esc(l.fase)+'</div></td><td>'+esc(l.op)+' '+cc(l.pais)+(l.rival?' <span class="chip red">rival</span>':'')+'</td><td><span class="chip '+(l.res==='V'?'green':l.res==='D'?'red':'')+'">'+l.res+'</span></td><td class="small">'+esc(l.met)+(l.rd?' · R'+l.rd:'')+'</td></tr>').join('')+'</tbody></table></div>':'')+'</section>'}
+const SIG_STD={bjj:['FED','CBJJ','IBJJF','IBJJF'],judo:['FED','CBJ','PJC','IJF'],muay:['FED','CBMT','IFMA','IFMA'],boxe:['FED','CBBOXE','PAN','MUNDIAL'],wrest:['FED','CBW','UWW','UWW'],karate:['FED','CBK','PKF','WKF']};
+function siglaOf(m){const t=m.tier,T=TIERS[t];if(T.olimp)return 'JOGOS';if(t===4)return 'ADCC';if(T.pf)return 'CBJJE';if(t===6||t===7)return 'AJP';if(t>=8&&t<=11)return 'IBJJF';
+  const art=m.art||(/Jiu-Jitsu/.test(m.nome)?'bjj':/Judô/.test(m.nome)?'judo':/Muay/.test(m.nome)?'muay':/Boxe/.test(m.nome)?'boxe':/Wrestling/.test(m.nome)?'wrest':/Karatê/.test(m.nome)?'karate':'');
+  return (SIG_STD[art]||['FED','BRAS','PAN','MUND'])[Math.min(3,t)]}
 function ribOf(t){const T=TIERS[t];if(T.olimp)return ['#0081c8','#fcb131'];if(t===4)return ['#151515','#d4a017'];if(T.pf)return ['#009c3b','#ffdf00'];if(t===6||t===7)return ['#b21f2d','#f4f4f4'];if([8,9,10,11].includes(t))return ['#1d3f8f','#f4f4f4'];return [['#c8312b','#f4f4f4'],['#1d6b3a','#f4f4f4'],['#1d3f8f','#f4f4f4'],['#151515','#e2a72e']][Math.min(3,t)]}
 function trophyView(){return trophyHTML(G.trof,G.marcos)}
 function trophyHTML(trof,marcos){const belts=trof.filter(t=>t.t==='belt'),meds=trof.filter(t=>t.t==='med');
   const grp=[...new Set(meds.map(m=>m.tier))].sort((a,b)=>TIERS[b].leg[0]-TIERS[a].leg[0]).map(tier=>[tier,meds.filter(m=>m.tier===tier).sort((a,b)=>a.metal-b.metal||b.ano-a.ano)]).filter(x=>x[1].length);
-  const tile=m=>'<div class="mdl" title="'+esc(['Ouro','Prata','Bronze'][m.metal]+' · '+m.nome+' · '+m.cat+' · '+m.ano)+'"><div class="rib" style="--r1:'+ribOf(m.tier)[0]+';--r2:'+ribOf(m.tier)[1]+'"></div><div class="disc m'+m.metal+'"><span>'+(m.metal+1)+'º</span></div><b>'+esc(m.nome)+'</b><span class="tiny muted">'+esc(m.cat)+' · '+m.ano+'</span></div>';
+  const tile=m=>'<div class="mdl" title="'+esc(['Ouro','Prata','Bronze'][m.metal]+' · '+m.nome+' · '+m.cat+' · '+m.ano)+'"><div class="rib" style="--r1:'+ribOf(m.tier)[0]+';--r2:'+ribOf(m.tier)[1]+'"></div><div class="disc m'+m.metal+'"><span><small'+(siglaOf(m).length>5?' class="lg"':'')+'>'+siglaOf(m)+'</small>'+(m.metal+1)+'º</span></div><b>'+esc(m.nome)+'</b><span class="tiny muted">'+esc(m.cat)+' · '+m.ano+'</span></div>';
   return '<div class="stack"><section class="panel stack"><div><div class="label">Sala de troféus</div><h2 class="h">Cinturões</h2></div>'+
    (belts.length?'<div class="trophies">'+belts.map(b=>'<div class="tro"><div class="beltico" aria-hidden="true"></div><div><b>'+esc(b.nome)+'</b><div class="tiny muted">'+esc(b.classe)+' · '+b.ano+(b.fim?'–'+b.fim:' · atual')+(b.def?' · '+b.def+' defesa(s)':'')+'</div></div></div>').join('')+'</div>':'<p class="muted">Nenhum cinturão ainda. Os cinturões são disputados no MMA profissional.</p>')+'</section>'+
    '<section class="panel stack"><div><div class="label">Medalhas · '+meds.length+'</div><h2 class="h">Campeonatos</h2></div>'+(grp.length?grp.map(([tier,ms])=>'<div class="stack-s"><div class="label">'+(TIERS[tier].olimp?'Jogos Olímpicos':TIERS[tier].pf||tier>=4?evName('bjj',tier):TIERS[tier].nome)+' · '+[[0,'ouro'],[1,'prata'],[2,'bronze']].map(([k,n])=>{const c=ms.filter(x=>x.metal===k).length;return c?c+' '+n+(c>1?'s':''):''}).filter(Boolean).join(' · ')+'</div><div class="medals">'+ms.map(tile).join('')+'</div></div>').join(''):'<p class="muted">Nenhuma medalha ainda.</p>')+'</section>'+
