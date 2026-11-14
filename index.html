@@ -293,7 +293,8 @@ const r1=v=>Math.round(v*10)/10;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function mulberry(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-function withSeed(seed,fn){const old=R;R=mulberry(seed);try{return fn()}finally{R=old}}
+let SEEDED=0;
+function withSeed(seed,fn){const old=R;R=mulberry(seed);SEEDED++;try{return fn()}finally{R=old;SEEDED--}}
 const fmt$=v=>(v<0?'−':'')+'R$ '+Math.abs(Math.round(v)).toLocaleString('pt-BR');
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct=p=>Math.round(p*100);
@@ -678,7 +679,51 @@ const POOL={am:['BRA','USA','MEX','ARG','CUB'],
   mundo:{muay:['THA','THA','THA','NLD','BRA','USA','FRA','RUS'],boxe:['CUB','KAZ','USA','MEX','RUS','IRL','BRA','JPN'],karate:['JPN','JPN','FRA','IRN','BRA','KAZ','USA'],
     bjj:['BRA','BRA','BRA','USA','USA','JPN','POL'],judo:['JPN','GEO','FRA','KAZ','BRA','KOR','RUS'],wrest:['RUS','USA','GEO','IRN','KAZ','JPN','CUB'],
     mma:['BRA','USA','RUS','IRL','POL','NGA','GEO','MEX','KAZ','KOR','FRA','NLD','ARG']}};
-function genName(pais,sexo){if(pais==='BRA')return {n:pick(NOMES[sexo]),s:pick(SOBRE)};const P=PAISES[pais];return {n:pick(P[sexo]),s:pick(P.s)}}
+const MAIS_NOMES={
+  BRA:{m:['Gustavo','Rodrigo','Leonardo','Eduardo','Ricardo','Fábio','Márcio','Alexandre','Samuel','Otávio','Wesley','Jefferson','Robson','Anderson','Washington','Cauã','Enzo','Arthur','Heitor','Nicolas','Breno','Yuri','Luan','Kauan','Guilherme','Júlio','Sérgio','Adriano','Willian','Vinícius','Emerson','Wanderson','Ramon','Iago','Alan','Patrick','Saulo','Cristiano','Fernando','Erick','Jhonatan','Maicon','Tiago','Marlon','Raí','Hugo','Danilo','Paulo','Rogério','Valdir'],
+       f:['Isabela','Giovana','Manuela','Alice','Valentina','Heloísa','Lorena','Mirella','Daniela','Patrícia','Renata','Simone','Tatiane','Karen','Michele','Elaine','Flávia','Bruna','Paula','Sara','Rafaela','Nathalia','Ingrid','Stephanie','Jaqueline','Cíntia','Eduarda','Maria Clara','Ana Júlia','Lara','Clara','Mayara','Taís','Kamila','Rebeca','Tainá','Gisele','Luiza','Melissa','Rosana'],
+       s:['Martins','Mendes','Nunes','Vieira','Marques','Ramos','Correia','Fernandes','Lopes','Soares','Machado','Reis','Andrade','Campos','Pinto','Moreira','Castro','Fonseca','Xavier','Melo','Duarte','Tavares','Prado','Farias','Peixoto','Guimarães','Sales','Coelho','Leite','Rezende','Assis','Macedo','Damasceno','Valente','Falcão','Paiva','Amaral','Bastos','Pimentel','Lacerda','Toledo','Lins','Borges','Godoy','Viana','Sampaio','Magalhães','Antunes','Conceição','Brito']},
+  USA:{m:['Ryan','Chase','Hunter','Austin','Dylan','Trevor','Garrett','Colby','Wyatt','Cole','Jordan','Marcus','Dustin','Travis','Shane','Nate','Evan','Gavin'],f:['Hailey','Madison','Lauren','Paige','Kelsey','Morgan','Alexis','Riley','Sierra','Rachel'],s:['Thompson','Anderson','Mitchell','Cooper','Bennett','Sullivan','Parker','Foster','Bryant','Coleman','Wright','Hughes','Morrison','Fletcher','Grant','Holloway']},
+  RUS:{m:['Islam','Khabib','Shamil','Magomed','Rasul','Alexei','Dmitri','Nikolai','Ibragim','Umar','Kamil','Abubakar'],f:['Anastasia','Natalia','Yulia','Marina','Polina','Viktoria'],s:['Makhachev','Khasbulaev','Ismailov','Nurmagomedov','Sidorov','Kuznetsov','Ivanov','Smirnov','Omarov','Tagirov','Ramazanov']},
+  JPN:{m:['Haruto','Sota','Riku','Kaito','Yuma','Ren','Takeshi','Hiroshi','Kazuki','Shinya'],f:['Mei','Rin','Hina','Nanami','Saki','Emi'],s:['Suzuki','Takahashi','Watanabe','Ito','Kato','Yoshida','Matsumoto','Kimura','Hayashi','Shimizu']},
+  THA:{m:['Saenchai','Buakaw','Rodtang','Superlek','Petchmorakot','Yodsanan','Chanajon','Sittichai'],f:['Wanida','Natthida','Kultida','Ratchanok'],s:['Sor Rungroj','Por Pramuk','Jitmuangnon','Kiatpetch','Sitmonchai','Petchyindee','Lukjaoporongtom']},
+  MEX:{m:['Diego','Miguel','Rodrigo','Fernando','Ricardo','Javier','Eduardo','Adrián'],f:['Daniela','Fernanda','Paola','Mariana','Alexa'],s:['Martínez','Sánchez','Pérez','Flores','Gómez','Torres','Vargas','Reyes','Cruz','Mendoza']},
+  IRL:{m:['Conor','Aidan','Liam','Ronan','Declan','Kieran','Niall'],f:['Orla','Gráinne','Róisín','Clodagh'],s:["O'Brien","O'Sullivan",'Ryan','McCarthy','Gallagher','Kavanagh','Quinn','Brennan']},
+  GEO:{m:['Merab','Zurab','Nika','Lukas','Guram','Beka','Vakhtang'],f:['Ana','Salome','Eka','Natia'],s:['Dvalishvili','Tsiklauri','Maisuradze','Gogia','Chikhladze','Mamulashvili','Kvaratskhelia']},
+  KOR:{m:['Hyun-woo','Ji-hoon','Tae-yang','Sung-min','Chan-sung','Doo-ho'],f:['Ha-eun','Soo-ah','Ye-jin','Da-eun'],s:['Kang','Cho','Yoon','Jang','Lim','Han','Oh','Seo']},
+  FRA:{m:['Nicolas','Julien','Antoine','Hugo','Lucas','Mehdi','Bilal','Florian','Ciryl'],f:['Camille','Emma','Sarah','Pauline','Océane'],s:['Martin','Bernard','Petit','Roux','Fournier','Mercier','Bonnet','Lambert','Benali','Traoré']},
+  CUB:{m:['Yasiel','Yunior','Erislandy','Andy','Roniel','Julio César','Arlen'],f:['Yanet','Dayana','Leidis','Yaritza'],s:['Hernández','Rigondeaux','Álvarez','Iglesias','Savón','Mesa','Ortiz','Cabrera']},
+  NGA:{m:['Kamaru','Israel','Sodiq','Ikenna','Uche','Babatunde','Segun'],f:['Funmi','Folake','Amaka','Ifeoma'],s:['Usman','Adesanya','Okonkwo','Ogunleye','Afolabi','Chukwu','Ibekwe']},
+  KAZ:{m:['Shavkat','Zhalgas','Arman','Ruslan','Bekzat','Yerbol'],f:['Aliya','Saule','Zhanar'],s:['Rakhmonov','Zhumagulov','Nurtazin','Kairat','Sadykov','Tulegenov']},
+  NLD:{m:['Thijs','Sven','Niels','Lars','Ruben','Tim','Wesley'],f:['Anouk','Femke','Iris','Noor'],s:['Smit','de Boer','Mulder','de Jong','Bos','Vos','Peters','Hendriks']},
+  POL:{m:['Jakub','Piotr','Michał','Tomasz','Krzysztof','Łukasz','Marcin'],f:['Joanna','Agnieszka','Magdalena','Natalia'],s:['Kamiński','Lewandowski','Zieliński','Szymański','Woźniak','Dąbrowski','Jędrzejczyk','Błachowicz']},
+  ARG:{m:['Joaquín','Tomás','Lautaro','Franco','Gonzalo','Martín','Ezequiel','Leandro','Maximiliano','Julián','Emiliano','Diego','Ignacio','Federico','Bruno','Thiago','Valentín','Lucas'],
+       f:['Valentina','Camila','Martina','Lucía','Micaela','Julieta','Rocío','Milagros','Paula','Carolina'],
+       s:['Rodríguez','López','Martínez','García','Pérez','Gómez','Díaz','Álvarez','Torres','Ruiz','Benítez','Acosta','Medina','Herrera','Suárez','Aguirre','Giménez','Molina','Castro','Ortiz','Ledesma','Quiroga','Villalba','Ojeda']},
+  AUS:{m:['Josh','Liam','Ethan','Cooper','Brodie','Callum','Tai','Jai'],f:['Ruby','Isla','Grace','Zoe'],s:['Smith','Brown','Jones','Williams','Kelly','Thomas','Walker','White']},
+  IRN:{m:['Ali','Hossein','Mohammad','Saeed','Morteza','Hamid'],f:['Maryam','Fatemeh','Niloufar'],s:['Ahmadi','Mohammadi','Jafari','Ghasemi','Abbasi','Moradi']},
+};
+const NOVOS_PAISES={
+  CAN:{m:['Connor','Owen','Liam','Noah','Mathis','Félix'],f:['Emma','Olivia','Chloé','Maya'],s:['Tremblay','Gagnon','Roy','MacDonald','Campbell','Leblanc','Fraser']},
+  ENG:{m:['Harry','Oliver','George','Jack','Leon','Tom','Callum','Alfie'],f:['Amelia','Ella','Molly','Poppy'],s:['Edwards','Evans','Clarke','Wood','Hall','Turner','Pimblett','Aspinall']},
+  ITA:{m:['Marco','Luca','Alessandro','Matteo','Lorenzo','Davide'],f:['Giulia','Chiara','Francesca','Sara'],s:['Rossi','Russo','Ferrari','Esposito','Bianchi','Romano','Colombo','Ricci']},
+  ESP:{m:['Pablo','Álvaro','Sergio','Javier','Raúl','Iván'],f:['Lucía','Carmen','Marta','Irene'],s:['García','Fernández','Navarro','Moreno','Jiménez','Ruiz','Topuria','Serrano']},
+  UKR:{m:['Oleksandr','Andriy','Bohdan','Taras','Vitaliy','Yaroslav'],f:['Oksana','Kateryna','Iryna'],s:['Shevchenko','Bondarenko','Kovalenko','Usyk','Melnyk','Tkachenko','Kravchenko']},
+  PER:{m:['Renzo','Piero','Gianfranco','Jhon'],f:['Rosa','Milagros','Fiorella'],s:['Quispe','Huamán','Flores','Mamani','Chávez','Salazar']},
+  CHL:{m:['Benjamín','Vicente','Cristóbal','Felipe'],f:['Antonia','Josefa','Catalina'],s:['Muñoz','Rojas','Soto','Contreras','Silva','Espinoza']},
+};
+for(const p in NOVOS_PAISES)PAISES[p]=NOVOS_PAISES[p];
+NOMES.m.push(...MAIS_NOMES.BRA.m);NOMES.f.push(...MAIS_NOMES.BRA.f);SOBRE.push(...MAIS_NOMES.BRA.s);
+for(const p in MAIS_NOMES)if(p!=='BRA')for(const k of ['m','f','s'])PAISES[p][k].push(...MAIS_NOMES[p][k]);
+for(const p in PAISES)for(const k of ['m','f','s'])PAISES[p][k]=[...new Set(PAISES[p][k])];
+POOL.am.push('PER','CHL','CAN');POOL.mundo.bjj.push('ARG','CAN','ENG','ITA','ESP','PER','CHL','AUS','FRA');POOL.mundo.mma.push('ENG','ESP','ITA','CAN','UKR','AUS','JPN','CHL','PER');
+POOL.mundo.judo.push('ITA','ESP','UKR','NLD');POOL.mundo.boxe.push('UKR','ENG','ITA');POOL.mundo.muay.push('ENG','ESP','ITA','AUS');POOL.mundo.wrest.push('UKR','CAN');POOL.mundo.karate.push('ESP','ITA','UKR');
+/* evita repetir nomes: guarda os últimos 200 sorteados (fora das estimativas, que usam sorteio fixo) */
+function genName(pais,sexo){const P=pais==='BRA'?{m:NOMES.m,f:NOMES.f,s:SOBRE}:PAISES[pais]||PAISES.USA;let nm,t=0;
+  const rec=(!SEEDED&&typeof G!=='undefined'&&G&&G.nomesR)||[];
+  do{nm={n:pick(P[sexo]),s:pick(P.s)};t++}while(t<15&&(rec.includes(nm.n+' '+nm.s)||rec.includes('#'+nm.s)&&t<6));
+  if(!SEEDED&&typeof G!=='undefined'&&G){if(!G.nomesR)G.nomesR=[];G.nomesR.push(nm.n+' '+nm.s,'#'+nm.s);if(G.nomesR.length>400)G.nomesR.splice(0,G.nomesR.length-400)}
+  return nm}
 function genAttrs(level,style,sp){const bias=STYLE_B[style]||{};const a={};for(const k of AK)a[k]=level+(bias[k]||0)+rnd(-5,5);
   const sh=level-ovrOf(a,sp);for(const k of AK)a[k]=clamp(r1(a[k]+sh),5,99);return a}
 /* ================= carreira ================= */
@@ -742,6 +787,36 @@ const EQUIP={g:['Koral','Atama','Shoyoroll','Vouk','Keiko','Fuji Sports'],s:['Ve
 const equipOn=()=>!!(G.equip&&G.equip.ate>=absQ());
 const equipCost=id=>(id==='bjj'||id==='judo')?450:300;
 const kitOk=id=>!!(G.kit&&G.kit[id]!=null&&G.kit[id]>=absQ());
+/* ----- investimentos: equipe pessoal, camps, saúde, patrimônio ----- */
+const STAFF=[
+  {id:'fisio',nome:'Fisioterapeuta e massagista',custo:9000,idade:16,desc:'Risco de lesão −35%, lesões longas curam 1 trimestre antes e o desgaste cai mais rápido.'},
+  {id:'nutri',nome:'Nutricionista esportivo',custo:6000,idade:16,desc:'Corte de peso e recuperação bem feitos: +2 em Cardio e Força nas lutas.'},
+  {id:'sparr',nome:'Sparrings de alto nível',custo:15000,idade:18,desc:'Parceiros pagos para treinar duro: todo treino rende +12%.'},
+  {id:'tec',nome:'Técnico principal (corner e estratégia)',custo:24000,idade:18,desc:'Estuda o adversário e monta o plano de jogo: +2 em todos os atributos nas lutas.'},
+  {id:'long',nome:'Fisiologista e medicina esportiva',custo:12000,idade:27,desc:'Exames, reposição e recuperação de ponta: perda física pela idade −40%.'}];
+const CAMPS=[
+  {id:'tha',nome:'Camp na Tailândia (Phuket)',custo:35000,art:'muay',desc:'Muay Thai rende ×1,6 no trimestre; o resto, ×1,1.'},
+  {id:'dag',nome:'Camp de wrestling no Daguestão',custo:40000,art:'wrest',desc:'Wrestling rende ×1,6; o resto, ×1,1.'},
+  {id:'jpn',nome:'Camp de judô no Japão',custo:40000,art:'judo',desc:'Judô rende ×1,6; o resto, ×1,1.'},
+  {id:'cal',nome:'Camp de Jiu-Jitsu na Califórnia',custo:40000,art:'bjj',desc:'Jiu-Jitsu rende ×1,6; o resto, ×1,1.'},
+  {id:'cub',nome:'Camp de boxe em Cuba',custo:30000,art:'boxe',desc:'Boxe rende ×1,6; o resto, ×1,1.'},
+  {id:'oki',nome:'Camp de karatê em Okinawa',custo:35000,art:'karate',desc:'Karatê rende ×1,6; o resto, ×1,1.'},
+  {id:'usa',nome:'Camp de MMA numa equipe de ponta nos EUA',custo:80000,art:null,idade:18,desc:'Todo o treino rende ×1,3 no trimestre.'}];
+const BENS=[
+  {id:'casa',nome:'Casa própria',custo:600000,idade:18,leg:3,desc:'Acaba o aluguel: o custo de vida cai de R$ 2.400 para R$ 1.000 por trimestre.'},
+  {id:'pais',nome:'Casa para os seus pais',custo:800000,idade:18,leg:4,fama:3,desc:'Retribuir quem bancou o começo. +3 de fama.'},
+  {id:'social',nome:'Projeto social na comunidade',custo:300000,manut:20000,idade:20,leg:6,fama:2,desc:'Aulas grátis para crianças da comunidade. +1 de legado por ano ativo e alunos para a sua academia. Manutenção de R$ 20.000 por trimestre.'},
+  {id:'copa',nome:'Seu próprio campeonato',custo:1500000,idade:25,leg:12,fama:5,desc:'Uma copa anual com o seu nome, com premiação para atletas. +5 de fama.'},
+  {id:'inst',nome:'Instituto com o seu nome',custo:3000000,idade:27,reqFama:40,leg:20,fama:5,desc:'Bolsas para jovens atletas pelo país. O maior legado fora do tatame.'}];
+const ACAD_UP=[{nome:'Academia simples',cap:450,cresc:0},{nome:'Reforma e tatame maior',custo:120000,cap:700,cresc:3},{nome:'CT completo (musculação, octógono e fisioterapia)',custo:450000,cap:1200,cresc:6}];
+const FILIAL=350000,FIL_MAX=12;
+const stOn=k=>!!(G.staff&&G.staff[k]);
+const campOn=()=>G.camp&&G.camp.q===absQ()?CAMPS.find(c=>c.id===G.camp.id):null;
+function campMult(id){const C=campOn();if(!C)return 1;if(!C.art)return 1.3;return C.art===id?1.6:1.1}
+const temBem=k=>!!(G.bens&&G.bens[k]!=null);
+function bemOk(b){if(temBem(b.id))return {ok:false,why:'Já é seu'};if(G.idade<b.idade)return {ok:false,why:'A partir dos '+b.idade+' anos'};
+  if(b.reqFama&&G.fama<b.reqFama)return {ok:false,why:'Precisa de fama '+b.reqFama};if(G.dinheiro<b.custo)return {ok:false,why:'Custa '+fmt$(b.custo)};return {ok:true}}
+const acadCap=()=>{const M=G.minha;return ACAD_UP[M.niv||0].cap+(M.fil||0)*250};
 const MARCAS=['Venum','Everlast','Hayabusa','Koral','Shoyoroll','Atama','Vouk','Integralmédica','Max Titanium','Growth Supplements','Monster Energy','Fuji Sports'];
 const ACADS={bjj:['Alliance','Gracie Barra','Checkmat','Atos Jiu-Jitsu','GF Team','Nova União','Dream Art','Soul Fighters'],
   judo:['Esporte Clube Pinheiros','Minas Tênis Clube','Sogipa','Instituto Reação','Associação Judô Vila Sônia'],
@@ -763,7 +838,7 @@ function migrate(g){if(!g)return null;if(g.v===2){const mp={8:12,9:13,10:14,11:1
     for(const m of g.med||[])if(mp[m.tier]!=null)m.tier=mp[m.tier];for(const t of g.trof||[])if(t.t==='med'&&mp[t.tier]!=null)t.tier=mp[t.tier];
     if(g.fight&&g.fight.k==='torneio'&&mp[g.fight.tier]!=null)g.fight.tier=mp[g.fight.tier];
     if(typeof g.ev==='string'){const x=/^X(\d+):(.*)$/.exec(g.ev);if(x&&mp[+x[1]]!=null)g.ev='X'+mp[+x[1]]+':'+x[2];if(g.ev==='T:bjj'&&g.q!==0)g.ev='none'}
-    g.v=3}return g.v===3?g:null}
+    g.v=3}if(g&&g.v===3){g.staff=g.staff||{};g.bens=g.bens||{};g.nomesR=g.nomesR||[];if(g.minha){g.minha.niv=g.minha.niv||0;g.minha.fil=g.minha.fil||0}}return g&&g.v===3?g:null}
 function loadSave(){try{const s=localStorage.getItem(KEY);return migrate(s?JSON.parse(s):null)}catch(e){return null}}
 function dropSave(){try{localStorage.removeItem(KEY)}catch(e){}}
 function loadHall(){try{return JSON.parse(localStorage.getItem(HALL)||'[]')}catch(e){return []}}
@@ -783,7 +858,8 @@ function buffs(){const b={};for(const k of AK)b[k]=0;
   for(const sy of activeSyn())for(const k in sy.b)b[k]+=sy.b[k];return b}
 const activeSyn=()=>SYN.filter(sy=>sy.arts.every(a=>G.artes[a]&&G.artes[a].r>=half(a)));
 function effA(ctx,base){base=base||G.at;const b=buffs(),a={};for(const k of AK)a[k]=clamp(r1(base[k]+b[k]),1,99);
-  if(ctx==='mma'&&G.mma&&G.mma.mod){for(const k in G.mma.mod)a[k]=clamp(r1(a[k]+G.mma.mod[k]),1,99)}return a}
+  if(ctx==='mma'&&G.mma&&G.mma.mod){for(const k in G.mma.mod)a[k]=clamp(r1(a[k]+G.mma.mod[k]),1,99)}
+  if(G.staff){const sb={};if(stOn('nutri')){sb.car=2;sb.for=2}if(stOn('tec'))for(const k of AK)sb[k]=(sb[k]||0)+2;for(const k in sb)a[k]=clamp(r1(a[k]+sb[k]),1,99)}return a}
 /* instrutor: turmas infantis a partir da antepenúltima graduação (roxa no Jiu-Jitsu), adultas a partir da penúltima (marrom) */
 const teachLvl=id=>{const st=G.artes[id];if(!st)return 0;const n=ARTS[id].ranks.length,t=TEACH[id]||[n-3,n-2];return st.r>=t[1]?2:st.r>=t[0]?1:0};
 const teachN=id=>G.plano['aula_'+id]||0;
@@ -808,7 +884,10 @@ function finance(){const it=[];let out=0,inc=0,fees=0;
   else for(const id of eqArts){const nm=(id==='bjj'||id==='judo')?'Kimono novo de '+ARTS[id].nome:'Luvas e protetores de '+ARTS[id].nome;
     if(id===G.art0&&G.idade<18)it.push([nm+' (presente da família, dura uns 2 anos)',0]);else{const c=equipCost(id);out+=c;fees+=c;it.push([nm+' (compra única, dura uns 2 anos)',-c])}}
   const tv=travelOf();if(tv){out+=tv;fees+=tv;it.push(['Inscrição e viagem do evento',-tv]);if(G.ajuda&&G.ajuda.q===absQ()){const v=Math.min(tv,G.ajuda.v);inc+=v;it.push(['Vaquinha da academia (mestre e colegas)',v])}}
-  if(G.idade>=18){out+=2400;it.push(['Custo de vida (aluguel, comida, transporte)',-2400])}
+  if(G.idade>=18){const cv=temBem('casa')?1000:2400;out+=cv;it.push([temBem('casa')?'Custo de vida (casa própria: sem aluguel)':'Custo de vida (aluguel, comida, transporte)',-cv])}
+  for(const s of STAFF)if(stOn(s.id)){out+=s.custo;fees+=s.custo;it.push([s.nome+' ('+fmt$(s.custo/3)+'/mês)',-s.custo])}
+  {const C=campOn();if(C){out+=C.custo;fees+=C.custo;it.push([C.nome,-C.custo])}}
+  if(temBem('social')){out+=20000;it.push(['Projeto social (manutenção)',-20000])}
   if(G.minha){const r=acadResult();inc+=r.liq;it.push([G.minha.nome+': '+G.minha.alunos+' alunos (mensalidades menos aluguel e equipe)',r.liq])}
   if((G.plano.minha||0)>0)it.push(['Aulas na sua academia (atrai mais alunos)',0]);
   if(G.bolsa&&G.bolsa.ate>=absQ()){inc+=G.bolsa.valor;it.push(['Bolsa Atleta',G.bolsa.valor])}
@@ -835,14 +914,14 @@ function prizeOf(art,t,place){place=place||1;const T=TIERS[t],A=ARTS[art],juv=G.
   const bf=A.porFaixa&&!juv&&t!==4?bfOf(art,r):1;return Math.round(T.premio[place-1]*(juv?.35:1)*(.5+.5*bf)/10)*10}
 function subOf(art,t){const p=prizeOf(art,t),T=TIERS[t];return (t===4?'Absoluto sem kimono':catLabel(art)+(T.nogi?' · sem kimono':''))+' · '+(p?(T.pf?'campeão do absoluto ganha '+fmt$(p):'ouro paga '+fmt$(p)):(art==='bjj'&&IBJJF_T.includes(t)?'premiação só para a faixa preta adulta':'sem premiação em dinheiro'))+' · inscrição e viagem '+fmt$(tvOf(t))}
 function injRisk(){const a=G.idade,n=Object.keys(G.artes).filter(id=>(G.plano[id]||0)>0).length;
-  return .022+(usedSlots()>3?.015:0)+Math.max(0,n-1)*.012+(a>=30?.02:0)+(a>=34?.03:0)+G.desgaste/2500}
+  return (.022+(usedSlots()>3?.015:0)+Math.max(0,n-1)*.012+(a>=30?.02:0)+(a>=34?.03:0)+G.desgaste/2500+(campOn()?.01:0))*(stOn('fisio')?.65:1)}
 const canDebut=()=>Object.keys(G.artes).some(a=>G.artes[a].r>=half(a))||((G.cartel.mmaam||{}).v||0)>=3;
 
 function startCareer(d){const O=ORIGENS[d.orig],B=BIOS[d.bio],art=ARTS[d.art];
   G={v:3,nome:(d.nome||'').trim()||'Atleta',ap:(d.ap||'').trim(),sexo:d.sexo,bio:d.bio,orig:d.orig,art0:d.art,
     idade:14,ano:2026,ano0:2026,q:0,dinheiro:O.din,fama:0,pot:r1(rnd(O.pot[0],O.pot[1])),ef:O.ef,
     at:{},artes:{},prepT:0,plano:{},ev:'none',lutas:[],cartel:{},trof:[],marcos:[],news:[],med:[],rivais:[],npcs:{},
-    bolsa:null,patro:null,lesao:null,desgaste:0,mma:null,ofertas:[],pend:[],view:'hub',modal:null,uid:0,fight:null,res:null,rep:null,ult:{},ganhoTotal:0};
+    bolsa:null,patro:null,lesao:null,staff:{},bens:{},camp:null,nomesR:[],desgaste:0,mma:null,ofertas:[],pend:[],view:'hub',modal:null,uid:0,fight:null,res:null,rep:null,ult:{},ganhoTotal:0};
   for(const k of AK){let v=24+rnd(0,8)+(art.w[k]||0)*14+(B.mod[k]||0)+(O.bonus?(art.w[k]||0)*O.bonus:0);
     if(k==='qx')v=38+rnd(0,8)+(B.mod.qx||0);G.at[k]=r1(clamp(v,10,62))}
   const rk=0,e0=pickEst();G.artes[d.art]={r:rk,xp:reqOf(d.art).xp[rk],q:0,qr:0,t:O.tier||0,desde:2026,est:e0,var:estVar(e0)};
@@ -939,17 +1018,17 @@ function trainCalc(mult,dry){const at=dry?Object.assign({},G.at):G.at,gains={},p
     if(id.startsWith('aula_')){const x=id.slice(5);if(!dry&&G.artes[x])G.artes[x].xp+=.3*n;continue}
     const art=id==='prep'?PREP:ARTS[id],tier=id==='prep'?PREPT[G.prepT]:ACAD[G.artes[id].t];per[id]={};
     for(let i=0;i<n;i++){for(const k in art.w){const cap=capOf(k);const room=clamp((cap-at[k])/(cap-15),.03,1.2);
-        const g=1.05*art.w[k]*tier.mult*am*room*G.ef*mult*(id==='prep'?1:EST[G.artes[id].est||'pad'].tm)*(id===G.art0?(ORIGENS[G.orig].artMult||1):1)*(dry?1:rnd(.7,1.3));at[k]=Math.min(cap,at[k]+g);gains[k]=(gains[k]||0)+g;per[id][k]=(per[id][k]||0)+g}
-      if(!dry&&id!=='prep')G.artes[id].xp+=tier.mult*(a<16?.9:1)*(mult>1.1?1.15:1)*(G.lesao?.4:1)*(id===G.art0?(ORIGENS[G.orig].xpMult||1):1)}}
+        const g=1.05*art.w[k]*tier.mult*am*room*G.ef*mult*(id==='prep'?1:EST[G.artes[id].est||'pad'].tm)*(id===G.art0?(ORIGENS[G.orig].artMult||1):1)*(stOn('sparr')?1.12:1)*campMult(id)*(dry?1:rnd(.7,1.3));at[k]=Math.min(cap,at[k]+g);gains[k]=(gains[k]||0)+g;per[id][k]=(per[id][k]||0)+g}
+      if(!dry&&id!=='prep')G.artes[id].xp+=tier.mult*(a<16?.9:1)*(mult>1.1?1.15:1)*(G.lesao?.4:1)*(id===G.art0?(ORIGENS[G.orig].xpMult||1):1)*(campMult(id)>=1.6?1.3:1)}}
   if(!dry)for(const k in G.at)G.at[k]=r1(G.at[k]);return {gains,per,at}}
 function trainQuarter(mult){return trainCalc(mult,false).gains}
 const planMult=()=>(G.ev==='none'?1.25:1)*(G.lesao?.35:1);
 const projAt=()=>trainCalc(planMult(),true).at;
-function ageing(){const a=G.idade,dec=(k,v)=>{G.at[k]=r1(Math.max(8,G.at[k]-v))};
+function ageing(){const a=G.idade,lm=stOn('long')?.6:1,dec=(k,v)=>{G.at[k]=r1(Math.max(8,G.at[k]-v*lm))};
   if(a<20){const gr={for:.6,car:.3,vel:.2,qx:.25};for(const k in gr)if(G.at[k]<capOf(k))G.at[k]=r1(Math.min(capOf(k),G.at[k]+gr[k]))}
   if(a>=30){const d=.12*(a-29);dec('vel',d);dec('car',d*.8);if(a>=33)dec('for',.1*(a-32));if(a>=32)dec('qx',.15);
     if(a>=35)for(const k of ['soc','chu','cli','esq','que','dqu','con','fin','gua'])dec(k,.06*(a-34))}}
-function injure(fonte){const L=pick(LESOES);G.lesao={nome:L.nome,q:L.q,nova:true};
+function injure(fonte){const L=pick(LESOES);G.lesao={nome:L.nome,q:L.q>=2&&stOn('fisio')?L.q-1:L.q,nova:true};
   if(L.perm)for(const k in L.perm)G.at[k]=r1(Math.max(8,G.at[k]+L.perm[k]));
   const custo=700*L.q;G.dinheiro-=custo;news('Lesão '+fonte+': '+L.nome+' ('+L.q+' trimestre'+(L.q>1?'s':'')+' de recuperação, tratamento de '+fmt$(custo)+').');
   return L}
@@ -985,7 +1064,10 @@ function vacate(msg){const M=G.mma;const tr=G.trof.find(t=>t.t==='belt'&&t.org==
 function genOffers(){G.ofertas=[];const M=G.mma;if(!M||G.lesao)return;const ros=M.ros,ip=ros.indexOf('P'),cand=new Set();
   if(ip===0){[1,2,3].forEach(i=>cand.add(i))}
   else{if(ip<=2||(ip<=4&&M.streak>=3))cand.add(0);for(let i=Math.max(1,ip-3);i<=Math.min(ros.length-1,ip+2);i++)if(i!==ip)cand.add(i)}
-  let arr=[...cand].filter(i=>ros[i]&&ros[i]!=='P'&&G.npcs[ros[i]]);const pickd=[];
+  const now=absQ(),cd=id=>{const n=G.npcs[id];return n&&n.ult!=null&&now-n.ult<(n.ultR==='D'?6:4)};
+  let arr=[...cand].filter(i=>ros[i]&&ros[i]!=='P'&&G.npcs[ros[i]]&&!cd(ros[i]));
+  if(arr.length<2)for(let w=3;w<=8&&arr.length<2;w++)for(let i=Math.max(ip===0?1:0,ip-w);i<=Math.min(ros.length-1,ip+w);i++)if(i!==ip&&!arr.includes(i)&&ros[i]&&ros[i]!=='P'&&G.npcs[ros[i]]&&!cd(ros[i])&&(i!==0||ip<=4))arr.push(i);
+  const pickd=[];
   if(arr.includes(0)){pickd.push(0);arr=arr.filter(i=>i!==0)}
   const rv=arr.find(i=>isRival(ros[i]));if(rv!=null&&pickd.length<2){pickd.push(rv);arr=arr.filter(i=>i!==rv)}
   shuffle(arr);while(pickd.length<2&&arr.length)pickd.push(arr.shift());
@@ -1011,7 +1093,7 @@ function mmaAfter(F,sum){const M=G.mma,r=F.res[0],n=G.npcs[F.off.npc],O=ORGS[M.o
   if(win&&['KO','TKO','SUB'].includes(e.m)&&O.perf&&R()<.45)perf=O.perf;
   G.dinheiro+=purse+perf;C.lutas--;M.evn++;
   sum.lines.push(['Bolsa'+(win?' + bônus de vitória':''),purse]);if(perf)sum.lines.push(['Bônus de Performance da Noite',perf]);
-  if(n){if(win)n.d++;else if(!draw)n.v++}
+  if(n){if(win)n.d++;else if(!draw)n.v++;n.ult=absQ();n.ultR=r.res}
   M.hist.push(r.res);M.streak=win?(M.streak>0?M.streak+1:1):draw?0:(M.streak<0?M.streak-1:-1);
   M.w[M.org]+=win?1:0;
   const ros=M.ros,ip=ros.indexOf('P'),io=n?ros.indexOf(n.id):-1,wasChamp=ip===0;
@@ -1036,8 +1118,8 @@ const MENS_ALUNO=140;
 function canOpenAcad(){if(G.minha)return {ok:false,why:'Você já tem academia'};if(G.idade<21)return {ok:false,why:'A partir dos 21 anos'};
   const top=Object.keys(G.artes).filter(id=>isTop(id)||(teachLvl(id)===2&&G.fama>=30));if(!top.length)return {ok:false,why:'Precisa da faixa preta (ou equivalente), ou ser professor de adultos com fama 30+'};
   if(G.dinheiro<25000)return {ok:false,why:'Abertura custa '+fmt$(25000)};return {ok:true,arts:top}}
-function acadResult(){const M=G.minha;if(!M)return null;const rec=M.alunos*MENS_ALUNO*3,custo=4500+Math.round(rec*.3);return {rec,custo,liq:rec-custo}}
-function acadTier(){const a=G.minha?G.minha.alunos:0;return a>=150?2:a>=60?1:0}
+function acadResult(){const M=G.minha;if(!M)return null;const rec=M.alunos*MENS_ALUNO*3,custo=4500+(M.niv||0)*3000+(M.fil||0)*6000+Math.round(rec*.3);return {rec,custo,liq:rec-custo}}
+function acadTier(){const a=G.minha?G.minha.alunos:0;if(G.minha&&(G.minha.niv||0)>=2)return 2;return a>=150?2:a>=60?1:0}
 function canAdvance(){const f=finance();if(f.fees>Math.max(0,G.dinheiro)+f.inc)return {ok:false,why:'Faltam '+fmt$(f.fees-Math.max(0,G.dinheiro)-f.inc)+' para mensalidades'+(travelOf()?', inscrição e viagem':'')+'. Use "Ajustar ao orçamento": troca sessões de treino por trabalho de meio período, volta para a academia de bairro e tira o evento pago.'};return {ok:true}}
 function advanceQuarter(){const c=canAdvance();if(!c.ok){UI.toast=c.why;return false}
   const ev=evOptions().find(o=>o.key===G.ev&&o.ok)||{tipo:'none',key:'none'};
@@ -1144,10 +1226,10 @@ function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)|
     const ip=M.ros.indexOf('P');
     if(M.org<TOPORG&&absQ()-M.recusa>=2&&(ip===0||(ip<=3&&M.streak>=2)||(ip<=6&&M.streak>=4)))G.pend.push({tipo:'promo',org:M.org+1});
     const h=M.hist.slice(-3);if(M.org>0&&h.length===3&&h.every(x=>x==='D')){const o=M.org;enterOrg(o-1,8);M.hist.push('-');rep.l.push(['red','Após três derrotas seguidas, o '+ORGS[o].nome+' rescinde seu contrato. Você volta para o '+ORGS[o-1].nome+'.']);news(G.nome+' é dispensado do '+ORGS[o].nome+'.')}}
-  if(G.minha){const M=G.minha,recentes=G.med.filter(m=>m.ano===G.ano&&m.place===1).length;const ganho=Math.round(2+G.fama/8+(G.plano.minha||0)*6+recentes*2-M.alunos*.04);M.alunos=clamp(M.alunos+ganho,5,450);
+  if(G.minha){const M=G.minha,recentes=G.med.filter(m=>m.ano===G.ano&&m.place===1).length;const cap=acadCap(),ganho=Math.round(2+G.fama/8+(G.plano.minha||0)*6+recentes*2+ACAD_UP[M.niv||0].cresc+(M.fil||0)*3+(temBem('social')?3:0)-M.alunos*.04*450/cap);M.alunos=clamp(M.alunos+ganho,5,cap);
     if(G.artes[M.art])G.artes[M.art].t=Math.max(G.artes[M.art].t,acadTier());}
   sponsorCheck();equipCheck();acadCheck();
-  G.fama=r1(clamp(G.fama*.985,0,100));G.desgaste=r1(Math.max(0,G.desgaste-.4));
+  G.fama=r1(clamp(G.fama*.985,0,100));G.desgaste=r1(Math.max(0,G.desgaste-.4-(stOn('fisio')?.6:0)));
   G.q++;if(G.q>3){G.q=0;G.ano++;G.idade++;yearly();rep.l.push(['ink','Você fez '+G.idade+' anos.']);ageBelts(rep);if(G.idade===18)rep.l.push(['ink','Maioridade: agora você tem 4 sessões de treino por trimestre e paga o próprio custo de vida.'])}
   if(G.prof&&G.prof.ate<absQ()){news('Termina o contrato de professor ('+G.prof.acad+').');rep.l.push(['ink','Terminou o contrato de professor ('+G.prof.acad+').']);G.prof=null}
   ageing();
@@ -1164,7 +1246,8 @@ function legacy(){let s=0;
     if(t.t==='belt')s+=ORGS[t.org].leg[0]+ORGS[t.org].leg[1]*t.def}
   for(const id in G.artes)if(isTop(id))s+=6;
   if(G.mma)G.mma.w.forEach((v,i)=>{s+=v*[1,1.5,2.5,4][i]});
-  if(G.minha)s+=10+Math.floor(G.minha.alunos/50)*4;
+  if(G.minha)s+=10+Math.min(40,Math.floor(G.minha.alunos/50)*4)+(G.minha.niv||0)*2+(G.minha.fil||0)*3;
+  for(const b of BENS)if(temBem(b.id))s+=b.leg+(b.id==='social'?Math.min(15,G.ano-G.bens.social):0);
   s+=G.fama*.3;s=Math.round(s);const L=LEG.find(x=>s>=x[0]);return {s,tier:L[1],desc:L[2]}}
 function bestTitle(){const b=G.trof.filter(t=>t.t==='belt').sort((a,b)=>b.org-a.org||b.def-a.def)[0];if(b)return b.nome+(b.def?' ('+b.def+' defesas)':'');
   const m=G.trof.filter(t=>t.t==='med').sort((a,b)=>(TIERS[b.tier].leg[0]-TIERS[a.tier].leg[0])||(a.metal-b.metal)||((b.bf||1)-(a.bf||1)))[0];
@@ -1222,8 +1305,8 @@ function gameView(){switch(G.view){case 'pre':return preView();case 'fight':retu
 function hubView(){const t=UI.tab;
   const tabs='<div class="tabs" role="tablist">'+[['carreira','Carreira'],['cartel','Cartel'],['trofeus','Troféus']].map(([k,l])=>'<button data-a="tab" data-fast="1" data-t="'+k+'" aria-pressed="'+(t===k)+'">'+l+'</button>').join('')+'</div>';
   if(t==='cartel')return tabs+cartelView();if(t==='trofeus')return tabs+trophyView();
-  return tabs+(G.lesao?'<section class="panel" style="margin-bottom:16px;box-shadow:inset 4px 0 0 var(--red)"><b>Lesionado: '+esc(G.lesao.nome)+'.</b> <span class="muted">Faltam '+G.lesao.q+' trimestre(s). Sem competições; o treino rende 35%.</span></section>':'')+
-   '<div class="hub"><div class="stack">'+athleteCard()+artsCard()+'</div><div class="stack col-r">'+eventCard()+trainCard()+actionCard()+minhaCard()+ufcCard()+(G.mma?mmaCard():'')+rivalsCard()+newsCard()+'</div></div>'}
+  return tabs+(G.lesao?'<section class="panel" style="margin-bottom:16px;box-shadow:inset 4px 0 0 var(--red)"><b>Lesionado: '+esc(G.lesao.nome)+'.</b> <span class="muted">Faltam '+G.lesao.q+' trimestre(s). Sem competições; o treino rende 35%.</span>'+(!G.lesao.trat&&G.lesao.q>=1?' <button class="btn btn-sm btn-gold" data-a="tratar" '+(G.dinheiro<tratCusto()?'disabled':'')+'>Tratamento de ponta · '+fmt$(tratCusto())+'</button> <span class="tiny muted">cura 1 trimestre antes</span>':'')+'</section>':'')+
+   '<div class="hub"><div class="stack">'+athleteCard()+artsCard()+'</div><div class="stack col-r">'+eventCard()+trainCard()+actionCard()+minhaCard()+invCard()+ufcCard()+(G.mma?mmaCard():'')+rivalsCard()+newsCard()+'</div></div>'}
 function athleteCard(){const b=buffs(),best=SPORT_IDS.reduce((x,sp)=>ovrOf(effA(sp==='mma'?'mma':''),sp)>ovrOf(effA(x==='mma'?'mma':''),x)?sp:x,'boxe');
   const abar=k=>{const base=G.at[k],e=Math.min(99,base+b[k]),bw=Math.max(0,e-base);return '<div class="abar"><span>'+ATTRS[k]+'</span><span class="atrack"><i style="width:'+base+'%"></i><b style="left:'+base+'%;width:'+bw+'%"></b></span><span class="av num">'+Math.round(e)+'</span></div>'};
   return '<section class="panel stack"><div class="between"><div><div class="label">Ficha do atleta</div><h2 class="h">'+esc(G.nome)+(G.ap?' <span class="muted">"'+esc(G.ap)+'"</span>':'')+'</h2>'+
@@ -1236,7 +1319,7 @@ function artsCard(){const ids=Object.keys(G.artes),rest=ART_IDS.filter(a=>!G.art
   const row=id=>{const A=ARTS[id],st=G.artes[id],Rq=reqOf(id),bf=Rq.buff[st.r],nx=nextR(id);
     const bl=Object.entries(A.w).filter(([k,w])=>bf*w>=.5).sort((x,y)=>y[1]-x[1]).map(([k,w])=>'<b>+'+r1(bf*w)+'</b> '+ATTRS[k]).join(' · ');
     let nxt='';if(nx<A.ranks.length){const nq=needQ(id),qr=st.qr!=null?st.qr:st.q,xl=Math.max(0,Rq.xp[nx]-st.xp),ql=Math.max(0,nq-st.q,reqAt(id,nx,'qmin')-qr),parts=[];
-      if(xl>0)parts.push(Math.ceil(xl)+' pts de técnica');if(ql>0)parts.push('~'+Math.ceil(ql)+' trimestre(s) de faixa');if(Rq.age[nx]>G.idade)parts.push('idade mínima '+Rq.age[nx]+' anos');
+      if(xl>0)parts.push(Math.ceil(xl)+' pts de técnica');if(ql>0)parts.push('cerca de '+Math.ceil(ql)+' trimestre(s) de faixa');if(Rq.age[nx]>G.idade)parts.push('idade mínima '+Rq.age[nx]+' anos');
       const pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,Rq.xp[nx]-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));
       nxt='<div class="tiny muted">Próxima: <b>'+A.ranks[nx]+'</b> (bônus +'+Rq.buff[nx]+') · tempo nesta academia '+nq+' tri · mínimo oficial '+reqAt(id,nx,'qmin')+' tri</div>'+
         '<div class="tiny">'+(st.promo?'<b>Graduação garantida pelo título mundial</b>'+(Rq.age[nx]>G.idade?' ao completar '+Rq.age[nx]+' anos':' no fim do trimestre'):'Faltam: '+(parts.join(' · ')||'nada, a faixa sai no fim do trimestre'))+'</div><div class="meter gold"><i style="width:'+pct(st.promo?1:pr)+'%"></i></div>'}
@@ -1298,7 +1381,7 @@ function mmaCard(){const M=G.mma,ros=M.ros,ip=ros.indexOf('P'),O=ORGS[M.org];
   return '<section class="panel stack"><div class="between"><div><div class="label">'+O.serie+' · '+O.tipo+' · '+CLASSES[G.sexo][M.classe]+'</div><h2 class="h h-sm">'+O.nome+'</h2></div><span class="chip '+(ip===0?'gold':'ink')+'">'+rankTxt(ip)+'</span></div>'+
    '<div class="small muted">Contrato: '+M.contrato.lutas+' luta(s) restante(s) · '+fmt$(M.contrato.show)+' por luta + '+fmt$(M.contrato.show)+' na vitória · sequência '+(M.streak>0?M.streak+' vitória(s)':M.streak<0?(-M.streak)+' derrota(s)':'—')+'</div>'+
    '<div class="rank">'+ros.slice(0,11).map(line).join('')+(ip>10?line('P',ip):'')+'</div>'+
-   '<p class="tiny muted">C = campeão. Vencer alguém acima de você toma a posição dele. Top 2 (ou top 4 com 3 vitórias seguidas) recebe a disputa de cinturão.'+(M.org<TOPORG?' Campeões e líderes do ranking recebem propostas do '+ORGS[M.org+1].nome+'.':'')+' MMA profissional: '+cm.v+'-'+cm.d+'-'+cm.e+'.</p></section>'}
+   '<p class="tiny muted">C = campeão. Vencer alguém acima de você toma a posição dele. Top 2 (ou top 4 com 3 vitórias seguidas) recebe a disputa de cinturão.'+(M.org<TOPORG?' Campeões e líderes do ranking recebem propostas do '+ORGS[M.org+1].nome+'.':'')+' MMA profissional: '+cm.v+'-'+cm.d+'-'+cm.e+'. Revanche só depois de um tempo: 6 trimestres contra quem venceu você e 4 contra quem você já enfrentou.</p></section>'}
 function ufcCard(){if(G.idade<16)return '';const lv=Math.round(ovrOf(effA('mma'),'mma')),cur=G.mma?G.mma.org+1:0,avg=o=>Math.round((o.lvl[0]+o.lvl[1])/2);
   const st=[{n:'MMA amador',d:'a partir dos 16 anos',v:44}].concat(ORGS.map(o=>({n:o.serie+' · '+o.nome,d:o.tipo,v:avg(o)}))),top=avg(ORGS[TOPORG]),gap=top-lv;
   return '<section class="panel stack"><div class="between"><div><div class="label">Caminho do MMA</div><h2 class="h h-sm">Rumo ao UFC</h2></div><span class="chip '+(cur===ORGS.length?'gold':'ink')+'">'+(cur===ORGS.length?'No UFC':cur?'Degrau '+cur+' de '+ORGS.length:'Ainda amador')+'</span></div>'+
@@ -1308,10 +1391,29 @@ function ufcCard(){if(G.idade<16)return '';const lv=Math.round(ovrOf(effA('mma')
 function minhaCard(){const c=canOpenAcad();if(G.minha){const M=G.minha,r=acadResult(),n=G.plano.minha||0;
     return '<section class="panel stack"><div class="between"><div><div class="label">Sua academia · '+ARTS[M.art].nome+' · desde '+M.desde+'</div><h2 class="h h-sm">'+esc(M.nome)+'</h2></div><span class="chip gold">'+M.alunos+' alunos</span></div>'+
      '<div class="money"><span>Mensalidades ('+fmt$(MENS_ALUNO)+'/mês por aluno)</span><span class="num plus">+'+fmt$(r.rec)+'</span><span>Aluguel, instrutores e contas</span><span class="num minus">'+fmt$(-r.custo)+'</span><span class="tot">Resultado do trimestre</span><span class="tot num">'+(r.liq>0?'+':'')+fmt$(r.liq)+'</span></div>'+
-     '<div class="trow"><div class="stack-s"><b>Dar aulas na sua academia</b><span class="tiny muted">Cada sessão atrai cerca de 6 alunos por trimestre. Títulos e fama também trazem alunos. Você treina lá de graça, no nível '+ACAD[acadTier()].nome.toLowerCase()+'.</span></div><div class="step"><button data-a="slot" data-fast="1" data-k="minha" data-d="-1" '+(n<=0?'disabled':'')+'>−</button><span>'+n+'</span><button data-a="slot" data-fast="1" data-k="minha" data-d="1" '+(usedSlots()>=slotsMax()?'disabled':'')+'>+</button></div></div></section>'}
+     '<div class="trow"><div class="stack-s"><b>Dar aulas na sua academia</b><span class="tiny muted">Cada sessão atrai cerca de 6 alunos por trimestre. Títulos e fama também trazem alunos. Você treina lá de graça, no nível '+ACAD[acadTier()].nome.toLowerCase()+'.</span></div><div class="step"><button data-a="slot" data-fast="1" data-k="minha" data-d="-1" '+(n<=0?'disabled':'')+'>−</button><span>'+n+'</span><button data-a="slot" data-fast="1" data-k="minha" data-d="1" '+(usedSlots()>=slotsMax()?'disabled':'')+'>+</button></div></div>'+acadUpHTML()+'</section>'}
   if(G.idade<21)return '';
   return '<section class="panel stack"><div><div class="label">Empreender</div><h2 class="h h-sm">Abrir sua própria academia</h2></div><p class="small muted">Como muitos campeões, você pode abrir sua equipe: abertura de '+fmt$(25000)+', mensalidade dos alunos como renda e treino de graça. Quanto mais títulos e fama, mais alunos.</p>'+
    (c.ok?'<div><button class="btn btn-sm btn-gold" data-a="abrirAcad">Abrir academia</button></div>':'<p class="tiny" style="color:var(--red)">'+esc(c.why)+'</p>')+'</section>'}
+function acadUpHTML(){const M=G.minha,nv=M.niv||0,fil=M.fil||0,nx=ACAD_UP[nv+1];
+  return '<div class="label">Crescer a academia · '+esc(ACAD_UP[nv].nome)+' · capacidade '+acadCap()+' alunos'+(fil?' · '+fil+' filia'+(fil>1?'is':'l'):'')+'</div>'+
+   (nx?'<div class="trow"><div class="stack-s"><b>'+esc(nx.nome)+'</b><span class="tiny muted">Capacidade '+nx.cap+' alunos e +'+nx.cresc+' alunos por trimestre'+(nv+1===2?'. Seu treino lá passa a ser nível centro de elite.':'.')+'</span></div><button class="btn btn-sm btn-gold" data-a="acadUp" '+(G.dinheiro<nx.custo?'disabled':'')+'>'+fmt$(nx.custo)+'</button></div>':'')+
+   (fil<FIL_MAX?'<div class="trow"><div class="stack-s"><b>Abrir filial '+(fil+1)+'</b><span class="tiny muted">Como as grandes equipes: +40 alunos na hora, +250 de capacidade, +3 alunos por trimestre e +3 de legado. Custo fixo de '+fmt$(2000)+'/mês.</span></div><button class="btn btn-sm btn-gold" data-a="filial" '+(G.dinheiro<FILIAL?'disabled':'')+'>'+fmt$(FILIAL)+'</button></div>':'')}
+const tratCusto=()=>15000+G.lesao.q*20000;
+function invCard(){if(G.idade<16)return '';const S=G.staff||{},any=G.dinheiro>=15000||Object.values(S).some(Boolean)||Object.keys(G.bens||{}).length||campOn();if(!any)return '';
+  const t=UI.invT||'equipe',C=campOn();
+  const tabs='<div class="tabs" role="tablist" style="margin:0">'+[['equipe','Equipe'],['camp','Camp'],['saude','Saúde'],['bens','Patrimônio']].map(([k,l])=>'<button data-a="invT" data-fast="1" data-t="'+k+'" aria-pressed="'+(t===k)+'">'+l+'</button>').join('')+'</div>';
+  const row=(b,d,btn)=>'<div class="trow"><div class="stack-s"><b>'+b+'</b><span class="tiny muted">'+d+'</span></div>'+btn+'</div>';
+  let body='';
+  if(t==='equipe'){const L=STAFF.filter(s=>G.idade>=s.idade);body='<p class="tiny muted">Profissionais pagos por trimestre, enquanto você mantiver o contrato.</p>'+L.map(s=>row(esc(s.nome)+' · '+fmt$(s.custo/3)+'/mês',esc(s.desc),S[s.id]?'<button class="btn btn-sm" data-a="staff" data-k="'+s.id+'">Dispensar</button>':'<button class="btn btn-sm btn-gold" data-a="staff" data-k="'+s.id+'" '+(G.dinheiro<s.custo?'disabled':'')+'>Contratar</button>')).join('')}
+  else if(t==='camp'){const L=CAMPS.filter(c=>(!c.idade||G.idade>=c.idade)&&(!c.art||G.artes[c.art]));body='<p class="tiny muted">Um camp por trimestre, pago ao avançar. Vale para as sessões de treino deste trimestre (o "Previsto" já mostra), deixa o treino um pouco mais arriscado e rende mais técnica para a faixa.</p>'+
+    L.map(c=>row(esc(c.nome)+' · '+fmt$(c.custo),esc(c.desc)+(c.art&&!(G.plano[c.art]>0)?' <b>Coloque sessões de '+ARTS[c.art].nome+' no plano.</b>':''),C&&C.id===c.id?'<button class="btn btn-sm" data-a="camp" data-k="'+c.id+'">Cancelar</button>':'<button class="btn btn-sm btn-gold" data-a="camp" data-k="'+c.id+'" '+(G.dinheiro<c.custo?'disabled':'')+'>Ir neste trimestre</button>')).join('')}
+  else if(t==='saude'){body=row('Clínica de recuperação · '+fmt$(120000),'Uma temporada de tratamento intensivo: desgaste físico −15 (hoje '+Math.round(G.desgaste)+'/100). Uma vez por ano. Desgaste 100 encerra a carreira.',G.clin===G.ano?'<span class="chip">Feito em '+G.ano+'</span>':'<button class="btn btn-sm btn-gold" data-a="clinica" '+(G.dinheiro<120000||G.desgaste<1?'disabled':'')+'>Fazer</button>')+
+    row('Tratamento de lesão de ponta',G.lesao?'Lesão atual: '+esc(G.lesao.nome)+'. Cura 1 trimestre antes por '+fmt$(tratCusto())+'.':'Quando você se lesionar, aparece aqui e no aviso da lesão.',G.lesao&&!G.lesao.trat?'<button class="btn btn-sm btn-gold" data-a="tratar" '+(G.dinheiro<tratCusto()?'disabled':'')+'>'+fmt$(tratCusto())+'</button>':'<span class="chip">'+(G.lesao?'Já tratada':'Sem lesão')+'</span>')+
+    '<p class="tiny muted">O fisioterapeuta e o fisiologista (aba Equipe) também ajudam a durar mais.</p>'}
+  else{body='<p class="tiny muted">Compras únicas que contam no legado. Patrimônio comprado não volta a ser dinheiro.</p>'+BENS.map(b=>{const ok=bemOk(b),nm=b.id==='copa'?'Copa '+G.nome.split(' ').pop():b.nome;
+    return row(esc(nm)+' · '+fmt$(b.custo),esc(b.desc)+' +'+b.leg+' de legado.',temBem(b.id)?'<span class="chip gold">Desde '+G.bens[b.id]+'</span>':ok.ok?'<button class="btn btn-sm btn-gold" data-a="bem" data-k="'+b.id+'">Comprar</button>':'<span class="tiny muted" style="max-width:110px;text-align:right">'+esc(ok.why)+'</span>')}).join('')}
+  return '<section class="panel stack"><div class="between"><div><div class="label">Onde investir · você tem '+fmt$(G.dinheiro)+'</div><h2 class="h h-sm">Investimentos na carreira</h2></div></div>'+tabs+'<div>'+body+'</div></section>'}
 function rivalsCard(){if(!G.rivais.length)return '';
   return '<section class="panel stack"><div><div class="label">Rivalidades</div><h2 class="h h-sm">Contas a acertar</h2></div><div class="rank">'+G.rivais.map(rv=>{const n=G.npcs[rv.id];if(!n)return '';
     return '<div class="rv"><span class="num">'+rv.v+'-'+rv.d+'</span><span>'+esc(n.nome)+' '+cc(n.pais)+' <span class="tiny muted">'+(n.pro?'MMA':ARTS[n.arte]?ARTS[n.arte].nome:'')+' · desde '+esc(rv.origem)+'</span></span><span class="tiny">'+(rv.v>rv.d?'à frente':rv.v<rv.d?'atrás':'empate')+'</span></div>'}).join('')+'</div></section>'}
@@ -1378,7 +1480,7 @@ function legacyView(){const L=G.legado||legacy(),c=G.cartel,meds=G.trof.filter(t
   const stat=(l,v)=>'<div><div class="label">'+l+'</div><div class="h num">'+v+'</div></div>';
   return '<div class="stack"><section class="panel dark stack"><div class="label">Fim de carreira · '+mot+'</div><div class="leg-h">'+esc(L.tier)+'</div><p style="font-size:18px;max-width:640px">'+esc(G.nome)+': '+esc(L.desc)+'</p>'+
    '<div class="row" style="gap:28px">'+stat('Legado',L.s)+stat('Idade',G.idade)+stat('Cinturões',belts.length)+stat('Medalhas',meds.length)+stat('Graduação máxima',tops.length)+(c.mma?stat('MMA',c.mma.v+'-'+c.mma.d+'-'+c.mma.e):'')+stat('Dinheiro',fmt$(G.dinheiro))+'</div>'+
-   '<div class="small">Maior conquista: <b>'+esc(bestTitle())+'</b></div><div class="row"><button class="btn btn-gold" data-a="novo">Nova carreira</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="cartel">Ver cartel</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="trofeus">Ver troféus</button></div></section>'+
+   '<div class="small">Maior conquista: <b>'+esc(bestTitle())+'</b></div>'+(BENS.some(b=>temBem(b.id))||G.minha?'<div class="small">Fora do tatame: '+[G.minha?esc(G.minha.nome)+' ('+G.minha.alunos+' alunos'+(G.minha.fil?', '+G.minha.fil+' filiais':'')+')':''].concat(BENS.filter(b=>temBem(b.id)).map(b=>b.id==='copa'?'Copa '+esc(G.nome.split(' ').pop()):b.nome.toLowerCase())).filter(Boolean).join(' · ')+'</div>':'')+'<div class="row"><button class="btn btn-gold" data-a="novo">Nova carreira</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="cartel">Ver cartel</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="trofeus">Ver troféus</button></div></section>'+
    (UI.tab==='cartel'?cartelView():trophyView())+'</div>'}
 
 function modalView(){const m=G.modal;if(!m)return '';
@@ -1445,7 +1547,7 @@ const ACTN={
   trocar(d){const st=G.artes[d.art];if(G.view!=='hub'||!st||G.dinheiro<MATRICULA||(profOn()&&G.prof.art===d.art)||absQ()-(st.troca!=null?st.troca:-9)<4)return;G.dinheiro-=MATRICULA;st.est=pickEst(st.est);st.var=estVar(st.est);st.troca=absQ();st.acad=null;st.q=r1(st.q/2);
     news(G.nome+' troca de academia de '+ARTS[d.art].nome+'. Novo mestre: '+EST[st.est].nome.toLowerCase()+'.')},
   equip(d){const p=G.modal;if(!p||p.tipo!=='equip')return;if(d.i!==''&&d.i!=null){const o=p.ofs[+d.i];G.equip={marca:o.marca,valor:o.valor,ate:absQ()+o.dur-1};news(G.nome+' fecha patrocínio de equipamento com a '+o.marca+'.')}nextModal()},
-  orcamento(){if(G.view!=='hub')return;for(const id in G.artes){if(!(profOn()&&G.prof.art===id))G.artes[id].t=0}G.prepT=0;
+  orcamento(){if(G.view!=='hub')return;G.camp=null;if(!canAdvance().ok)G.staff={};for(const id in G.artes){if(!(profOn()&&G.prof.art===id))G.artes[id].t=0}G.prepT=0;
     if(!canAdvance().ok&&travelOf())G.ev='none';let g=0;
     const falta=()=>!canAdvance().ok||G.dinheiro+finance().saldo<0;
     while(falta()&&g++<12){const ok=canAdvance().ok,k=Object.keys(G.plano).find(k=>k!=='trab'&&k!=='prof'&&!k.startsWith('aula_')&&G.plano[k]>0&&k!==G.art0)||(G.plano[G.art0]>(ok?1:0)?G.art0:null);if(!k)break;G.plano[k]--;G.plano.trab=(G.plano.trab||0)+1}
@@ -1460,7 +1562,20 @@ const ACTN={
   abrirAcad(){const c=canOpenAcad();if(G.view!=='hub'||G.modal||!c.ok)return;G.modal={tipo:'nova',art:c.arts[0],nome:'Team '+G.nome.split(' ').pop()}},
   acadArt(d){if(G.modal&&G.modal.tipo==='nova'){const i=document.getElementById('f-acad');if(i)G.modal.nome=i.value;G.modal.art=d.art}},
   novaAcad(d){const m=G.modal;if(!m||m.tipo!=='nova')return;const i=document.getElementById('f-acad');const nome=((i&&i.value)||m.nome||'').trim()||'Team '+G.nome.split(' ').pop();G.modal=null;
-    if(d.ok==='1'&&canOpenAcad().ok){G.dinheiro-=25000;G.minha={nome,art:m.art,alunos:12,desde:G.ano};if(G.prof&&G.prof.art===m.art)G.prof=null;fixPlan();marco('Funda a academia '+nome);news(G.nome+' abre a própria academia: '+nome+'.');G.fama+=2}nextModal()},
+    if(d.ok==='1'&&canOpenAcad().ok){G.dinheiro-=25000;G.minha={nome,art:m.art,alunos:12,desde:G.ano,niv:0,fil:0};if(G.prof&&G.prof.art===m.art)G.prof=null;fixPlan();marco('Funda a academia '+nome);news(G.nome+' abre a própria academia: '+nome+'.');G.fama+=2}nextModal()},
+  invT(d){UI.invT=d.t},
+  staff(d){if(G.view!=='hub')return;G.staff=G.staff||{};const s=STAFF.find(x=>x.id===d.k);if(!s)return;
+    if(G.staff[s.id]){delete G.staff[s.id];news(G.nome+' encerra o contrato com o '+s.nome.toLowerCase()+'.')}else if(G.dinheiro>=s.custo&&G.idade>=s.idade){G.staff[s.id]=true;news(G.nome+' contrata: '+s.nome.toLowerCase()+'.')}},
+  camp(d){if(G.view!=='hub')return;const c=CAMPS.find(x=>x.id===d.k);if(!c)return;const C=campOn();if(C&&C.id===c.id){G.camp=null;return}if(G.dinheiro>=c.custo)G.camp={id:c.id,q:absQ()}},
+  clinica(){if(G.view!=='hub'||G.clin===G.ano||G.dinheiro<120000)return;G.dinheiro-=120000;G.clin=G.ano;G.desgaste=r1(Math.max(0,G.desgaste-15));news(G.nome+' passa uma temporada numa clínica de recuperação.')},
+  tratar(){if(G.view!=='hub'||!G.lesao||G.lesao.trat)return;const c=tratCusto();if(G.dinheiro<c)return;G.dinheiro-=c;G.lesao.trat=true;G.lesao.q--;
+    if(G.lesao.q<=0){news(G.nome+' faz tratamento de ponta e se recupera da '+G.lesao.nome.toLowerCase()+'.');G.lesao=null;if(G.mma)genOffers();G.ev=defaultEv()}else news(G.nome+' faz tratamento de ponta: a volta fica 1 trimestre mais perto.')},
+  bem(d){if(G.view!=='hub')return;const b=BENS.find(x=>x.id===d.k);if(!b||!bemOk(b).ok)return;G.bens=G.bens||{};G.dinheiro-=b.custo;G.bens[b.id]=G.ano;if(b.fama)G.fama=r1(Math.min(100,G.fama+b.fama));
+    const nm=b.id==='copa'?'Copa '+G.nome.split(' ').pop():b.nome;marco(nm);news(G.nome+': '+nm.toLowerCase()+'.')},
+  acadUp(){const M=G.minha;if(G.view!=='hub'||!M)return;const nx=ACAD_UP[(M.niv||0)+1];if(!nx||G.dinheiro<nx.custo)return;G.dinheiro-=nx.custo;M.niv=(M.niv||0)+1;
+    if(G.artes[M.art])G.artes[M.art].t=Math.max(G.artes[M.art].t,acadTier());marco(M.nome+': '+nx.nome.toLowerCase());news(M.nome+' ganha nova estrutura: '+nx.nome.toLowerCase()+'.')},
+  filial(){const M=G.minha;if(G.view!=='hub'||!M||(M.fil||0)>=FIL_MAX||G.dinheiro<FILIAL)return;G.dinheiro-=FILIAL;M.fil=(M.fil||0)+1;M.alunos=Math.min(acadCap(),M.alunos+40);
+    news(M.nome+' abre a filial nº '+M.fil+'.');if(M.fil===1||M.fil%5===0)marco(M.nome+': '+M.fil+(M.fil>1?' filiais':' filial'))},
   aposentar(){if(G.view==='hub'&&!G.modal)G.modal={tipo:'conf'}},
   confFim(){retire('escolha');UI.tab='trofeus'},
   voltar(){G.modal=null},
@@ -1496,10 +1611,17 @@ function botPlan(){const mx=slotsMax();
   if(G.minha&&R()<.6)G.plano.minha=1;
   if(!G.minha&&canOpenAcad().ok&&G.dinheiro>40000&&R()<.3){ACTN.abrirAcad();if(G.modal)ACTN.novaAcad({ok:'1'})}
   if(travelOf()&&R()<.5)ACTN.vaquinha();
+  if(G.dinheiro>150000)for(const s of STAFF)if(!stOn(s.id)&&R()<.4)ACTN.staff({k:s.id});
+  if(G.dinheiro>100000&&R()<.25){const c=CAMPS.filter(c=>!c.art||G.artes[c.art]);if(c.length)ACTN.camp({k:pick(c).id})}
+  if(G.dinheiro>400000)for(const b of BENS)if(bemOk(b).ok&&R()<.3)ACTN.bem({k:b.id});
+  if(G.minha&&G.dinheiro>500000&&R()<.3){ACTN.acadUp();ACTN.filial()}
+  if(G.dinheiro>200000&&G.desgaste>20)ACTN.clinica();
+  if(G.lesao&&G.dinheiro>100000)ACTN.tratar();
   for(let i=usedSlots();i<mx;i++){const id=i===0?G.art0:(R()<.2?'prep':pick(list));G.plano[id]=(G.plano[id]||0)+1}
   if(!canAdvance().ok){for(const id of list)G.artes[id].t=0;G.prepT=0}
   if(!canAdvance().ok){G.plano={trab:mx-1};G.plano[G.art0]=1;fixPlan()}
   if(!canAdvance().ok){G.plano={trab:mx};fixPlan()}
+  if(!canAdvance().ok){G.staff={};G.camp=null}
   const opts=evOptions().filter(o=>o.ok);
   const ev=opts.find(o=>o.tipo==='mma'&&R()<.9)||opts.find(o=>o.tipo==='amador'&&R()<.25)||opts.find(o=>o.key.startsWith('X')&&R()<.3)||(G.idade>=19&&R()<.45&&opts.find(o=>o.tipo==='estreia'))||opts.find(o=>o.tipo==='torneio'&&R()<.85)||opts.find(o=>o.tipo==='none');
   G.ev=ev.key}
