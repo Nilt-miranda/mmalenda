@@ -115,7 +115,9 @@ p{margin:0}
 
 /* faixas */
 .belt{display:inline-block;width:46px;height:12px;border-radius:2px;background:var(--c,#eee);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);position:relative;flex:none;vertical-align:middle}
-.belt::after{content:"";position:absolute;right:7px;top:0;bottom:0;width:11px;background:var(--tip,#111)}
+.belt::after{content:"";position:absolute;right:7px;top:0;bottom:0;width:var(--tw,11px);background:var(--tip,#111)}
+.belt .sts{position:absolute;right:8px;top:0;bottom:0;display:flex;gap:1px;z-index:1}
+.belt .sts i{width:2px;background:#f6f6f6}
 .belt.k{border-radius:6px}
 .belt.k::after{display:none}
 .belt.k.kp::after{display:block;right:0;width:40%;border-radius:0 6px 6px 0}
@@ -774,6 +776,14 @@ function coralAge(id){const Dg=DEG[id];const g=gOf(id);if(g>=Dg.coral)return nul
 function degTick(id,st,rep){const Dg=DEG[id];if(!Dg)return;if(st.g==null){st.g=Dg.ini;st.gq=st.gq!=null?st.gq:Math.floor(st.q||0)}st.gq=(st.gq||0)+1;const q=degReq(id);if(!q)return;
   if(st.gq>=q.q&&G.idade>=q.age){st.g=q.g;st.gq=0;const nm=degName(id,st.g),cor=st.g>=Dg.coral;rep.l.push(['gold','Graduação: '+nm+' de '+ARTS[id].nome+'!']);marco(nm+' de '+ARTS[id].nome);
     news(G.nome+' agora é '+nm.toLowerCase()+' de '+ARTS[id].nome+'.');G.fama+=cor?6:1}}
+/* regra das federações de Jiu-Jitsu: faixa preta de judô não compete na branca, entra no mínimo na azul */
+function azulRegra(rep){const st=G.artes.bjj;if(!st||st.r>=5||G.idade<16||!G.artes.judo||!isTop('judo'))return false;
+  st.r=5;st.q=0;st.qr=0;st.promo=false;st.hold=null;st.xp=Math.max(st.xp,reqOf('bjj').xp[5]);st.var=estVar(st.est);
+  const t='Faixa azul de Jiu-Jitsu: como faixa preta de judô, você não pode competir na faixa branca e entra direto na azul.';
+  if(rep)rep.l.push(['gold',t]);marco('Faixa azul de Jiu-Jitsu (faixa preta de judô compete no mínimo na azul)');news(G.nome+' recebe a faixa azul de Jiu-Jitsu: faixa preta de judô não compete na branca.');return true}
+/* graus (esparadrapos) da faixa de Jiu-Jitsu: até 4 por faixa, conforme o progresso; na preta, os graus da IBJJF */
+function stripesOf(id){const st=G.artes[id];if(!st)return 0;if(isTop(id))return Math.min(6,gOf(id));const nx=nextR(id);if(nx>=ARTS[id].ranks.length)return 0;
+  const Rq=reqOf(id),nq=needQ(id),pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,Rq.xp[nx]-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));return st.promo?4:Math.min(4,Math.floor(pr*4+1e-6))}
 function nextOlimp(){let y=G.ano+((4-G.ano%4)%4);if(y<2028)y=2028;if(y===G.ano&&G.q>2)y+=4;return y+(OLIMP[y]?' ('+OLIMP[y]+')':'')}
 function olimpQual(){return G.med.some(m=>m.art==='judo'&&m.ck==='adu'&&G.ano-m.ano<=2&&((m.tier===3&&m.place<=3)||(m.tier===2&&m.place===1)))}
 const SOCIAL={nome:'Projeto social',fee:0,mult:.9};
@@ -1253,6 +1263,7 @@ function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)|
     if(G.idade>=Rq.age[nx]&&(normal||st.promo)){const pulo=!normal;st.r=nx;st.q=0;st.qr=0;if(DEG[id]&&nx===ARTS[id].ranks.length-1){st.g=DEG[id].ini;st.gq=0}st.promo=false;st.var=estVar(st.est);st.xp=Math.max(st.xp,Rq.xp[nx]);const nm=ARTS[id].ranks[nx];
       rep.l.push(['gold','Graduação: '+nm+' de '+ARTS[id].nome+(pulo?', direto pelo título mundial!':'!')]);marco(nm+' de '+ARTS[id].nome+(pulo?' (pelo título mundial)':''));news(G.nome+' recebe a '+nm.toLowerCase()+' de '+ARTS[id].nome+'.');
       G.fama+=nx===ARTS[id].ranks.length-1?3:.5}}
+  azulRegra(rep);
   for(const sy of activeSyn())if(!synAntes.includes(sy.nome))rep.l.push(['green','Sinergia ativada: '+sy.nome+' ('+sy.desc+')']);
   if(G.lesao){if(G.lesao.nova)G.lesao.nova=false;else{G.lesao.q--;if(G.lesao.q<=0){rep.l.push(['green','Recuperado: '+G.lesao.nome]);news('Recuperado da '+G.lesao.nome.toLowerCase()+'.');G.lesao=null}}}
   if(G.bolsa&&G.bolsa.ate===absQ())rep.l.push(['ink','A Bolsa Atleta termina neste trimestre.']);
@@ -1267,7 +1278,7 @@ function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)|
     if(G.artes[M.art])G.artes[M.art].t=Math.max(G.artes[M.art].t,acadTier());}
   sponsorCheck();equipCheck();acadCheck();
   G.fama=r1(clamp(G.fama*.985,0,100));G.desgaste=r1(Math.max(0,G.desgaste-.4-(stOn('fisio')?.6:0)));
-  G.q++;if(G.q>3){G.q=0;G.ano++;G.idade++;yearly();rep.l.push(['ink','Você fez '+G.idade+' anos.']);ageBelts(rep);if(G.idade===18)rep.l.push(['ink','Maioridade: agora você tem 4 sessões de treino por trimestre e paga o próprio custo de vida.'])}
+  G.q++;if(G.q>3){G.q=0;G.ano++;G.idade++;yearly();rep.l.push(['ink','Você fez '+G.idade+' anos.']);ageBelts(rep);azulRegra(rep);if(G.idade===18)rep.l.push(['ink','Maioridade: agora você tem 4 sessões de treino por trimestre e paga o próprio custo de vida.'])}
   if(G.prof&&G.prof.ate<absQ()){news('Termina o contrato de professor ('+G.prof.acad+').');rep.l.push(['ink','Terminou o contrato de professor ('+G.prof.acad+').']);G.prof=null}
   ageing();
   if(G.mma)genOffers();
@@ -1299,7 +1310,8 @@ function beltHTML(id,r,sz){const A=ARTS[id];
   if(A.cores){const top=r===A.ranks.length-1,tip=A.tips&&A.tips[r];
     if(top&&sz!=='sm'&&DEG[id]&&G&&G.artes&&G.artes[id]&&G.artes[id].r===r&&gOf(id)>=DEG[id].coral)return '<span class="belt np'+(sz?' '+sz:'')+'" style="--c:repeating-linear-gradient(90deg,#c8312b 0 7px,'+(id==='bjj'?'#151515':'#f4f4f4')+' 7px 14px)" title="'+esc(degName(id,gOf(id)))+'"></span>';
     const cls=(A.tipo==='kruang'?' k'+(tip?' kp':''):(id==='bjj'?'':' np'))+(sz?' '+sz:'');
-    return '<span class="belt'+cls+'" style="--c:'+A.cores[r]+(top&&id==='bjj'?';--tip:#c8312b':tip?';--tip:'+tip:'')+'" title="'+esc(A.ranks[r])+'"></span>'}
+    const me=id==='bjj'&&sz!=='sm'&&G&&G.artes&&G.artes[id]&&G.artes[id].r===r,ns=me?stripesOf(id):0;
+    return '<span class="belt'+cls+'" style="--c:'+A.cores[r]+(top&&id==='bjj'?';--tip:#c8312b':tip?';--tip:'+tip:'')+(ns>4?';--tw:19px':'')+'" title="'+esc(A.ranks[r]+(ns?' · '+ns+' grau'+(ns>1?'s':''):''))+'">'+(ns?'<span class="sts">'+'<i></i>'.repeat(ns)+'</span>':'')+'</span>'}
   return '<span class="pips" title="'+esc(A.ranks[r])+'">'+A.ranks.map((_,i)=>'<i class="'+(i<=r?'on':'')+'"></i>').join('')+'</span>'}
 function cc(p){return '<span class="cc">'+esc(p)+'</span>'}
 function stars(){const n=clamp(Math.round((G.pot-74)/4.2),1,5);return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n)}
@@ -1372,7 +1384,7 @@ function artsCard(){const ids=Object.keys(G.artes),rest=ART_IDS.filter(a=>!G.art
         '<div class="tiny">'+(st.promo?'<b>Graduação garantida pelo título mundial</b>'+(Rq.age[nx]>G.idade?' ao completar '+Rq.age[nx]+' anos':' no fim do trimestre'):'Faltam: '+(parts.join(' · ')||'nada, a faixa sai no fim do trimestre'))+'</div><div class="meter gold"><i style="width:'+pct(st.promo?1:pr)+'%"></i></div>'}
     else nxt=degHTML(id);
     if(id==='judo')nxt+='<div class="tiny muted">Próximos Jogos Olímpicos: <b>'+nextOlimp()+'</b>. Vaga pelo ranking: medalha no Mundial ou ouro no Pan-Americano (adulto) nos 2 anos anteriores.</div>';
-    return '<div class="art"><div class="stack-s"><div class="row">'+beltHTML(id,st.r)+'<span class="an">'+A.nome+'</span><span class="muted small">'+(DEG[id]&&isTop(id)?degName(id,gOf(id)):A.ranks[st.r])+'</span></div>'+
+    return '<div class="art"><div class="stack-s"><div class="row">'+beltHTML(id,st.r)+'<span class="an">'+A.nome+'</span><span class="muted small">'+(DEG[id]&&isTop(id)?degName(id,gOf(id)):A.ranks[st.r]+(id==='bjj'&&stripesOf(id)?' · '+stripesOf(id)+' grau'+(stripesOf(id)>1?'s':''):''))+'</span></div>'+
       '<div class="buffs">'+(bl||'Sem bônus ainda: gradue para ganhar bônus.')+'</div>'+nxt+'<div class="tiny muted">'+(teachLvl(id)===2?'Pode dar aulas para adultos.':teachLvl(id)===1?'Instrutor de turmas infantis. Turmas adultas a partir da '+A.ranks[(TEACH[id]||[0,A.ranks.length-2])[1]].toLowerCase()+'.':'Pode dar aulas para crianças a partir da '+A.ranks[(TEACH[id]||[A.ranks.length-3])[0]].toLowerCase()+'.')+'</div><div class="tiny muted">Mestre: <b>'+EST[st.est||'pad'].nome+'</b>, '+EST[st.est||'pad'].desc+'.</div></div><div class="tiny muted" style="text-align:right">'+esc(acadName(id))+'<br>desde '+st.desde+(profOn()&&G.prof.art===id?'':'<br><button class="lnk" style="color:var(--ink-2);padding:2px 0" data-a="trocar" data-art="'+id+'" '+(G.dinheiro<MATRICULA||absQ()-(st.troca!=null?st.troca:-9)<4?'disabled':'')+' title="Uma troca por ano">Trocar de academia ('+fmt$(MATRICULA)+')</button>')+'</div></div>'};
   return '<section class="panel stack"><div><div class="label">Artes marciais</div><h2 class="h h-sm">Graduações e bônus</h2></div><div>'+ids.map(row).join('')+'</div>'+
    (syn.length?'<div class="stack-s"><div class="label">Sinergias ativas</div>'+syn.map(s=>'<div class="small"><span class="chip green">'+s.nome+'</span> '+Object.entries(s.b).map(([k,v])=>'+'+v+' '+ATTRS[k]).join(', ')+'</div>').join('')+'</div>':
@@ -1567,7 +1579,7 @@ function fstep(d){const F=G&&G.fight;return F&&F.S&&String(F.step)===String(d.st
 const ACTN={
   menu(){UI.view='home'},
   novo(){UI.view='create';UI.tab='carreira';UI.draft={nome:'',ap:'',sexo:'m',bio:'medio',orig:'humilde',art:'bjj'}},
-  continuar(){if(!G)G=loadSave();if(G){UI.view='game';if(G.view==='legacy')UI.tab='trofeus'}},
+  continuar(){if(!G)G=loadSave();if(G){UI.view='game';if(G.view==='legacy')UI.tab='trofeus';else if(G.view==='hub'&&azulRegra(null))UI.toast='Faixa preta de judô não compete na branca: seu Jiu-Jitsu passou para a faixa azul.'}},
   draft(d){UI.draft[d.f]=d.v},
   criar(){const n=document.getElementById('f-nome'),a=document.getElementById('f-ap');if(n)UI.draft.nome=n.value;if(a)UI.draft.ap=a.value;startCareer(UI.draft);UI.view='game';UI.tab='carreira';UI.est={}},
   tab(d){UI.tab=d.t},tabLeg(d){UI.tab=d.t},
@@ -1578,7 +1590,7 @@ const ACTN={
   mudar(d){const o=LOCS[d.l];if(G.view!=='hub'||!o||G.idade<18||d.l===(G.loc||'BR')||G.dinheiro<o.mud)return;G.dinheiro-=o.mud;G.loc=d.l;
     if(G.prof){news('Fim do contrato de professor com a '+G.prof.acad+' por causa da mudança.');G.prof=null}delete G.plano.minha;delete G.plano.prof;fixPlan();G.ev=defaultEv();marco('Muda para '+o.nome);news(G.nome+' se muda para '+o.nome+'.')},
   ptier(d){const t=+d.t,T=PREPT[t];if(!T.fama||G.fama>=T.fama)G.prepT=t},
-  matricular(d){if(G.view!=='hub'||G.artes[d.art]||!canEnroll(d.art).ok)return;G.dinheiro-=MATRICULA;const e1=pickEst();G.artes[d.art]={r:0,xp:0,q:0,qr:0,t:0,desde:G.ano,est:e1,var:estVar(e1)};
+  matricular(d){if(G.view!=='hub'||G.artes[d.art]||!canEnroll(d.art).ok)return;G.dinheiro-=MATRICULA;const e1=pickEst();G.artes[d.art]={r:0,xp:0,q:0,qr:0,t:0,desde:G.ano,est:e1,var:estVar(e1)};if(d.art==='bjj'&&azulRegra(null))UI.toast='Como faixa preta de judô, você entra no Jiu-Jitsu direto na faixa azul.';
     news(G.nome+' se matricula numa academia de '+ARTS[d.art].nome+'.');marco('Começa a treinar '+ARTS[d.art].nome+' aos '+G.idade+' anos');
     if(usedSlots()<slotsMax())G.plano[d.art]=1},
   avancar(){if(G.view!=='hub'||G.modal)return;advanceQuarter()},
