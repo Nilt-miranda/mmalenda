@@ -777,10 +777,11 @@ function degTick(id,st,rep){const Dg=DEG[id];if(!Dg)return;if(st.g==null){st.g=D
   if(st.gq>=q.q&&G.idade>=q.age){st.g=q.g;st.gq=0;const nm=degName(id,st.g),cor=st.g>=Dg.coral;rep.l.push(['gold','Graduação: '+nm+' de '+ARTS[id].nome+'!']);marco(nm+' de '+ARTS[id].nome);
     news(G.nome+' agora é '+nm.toLowerCase()+' de '+ARTS[id].nome+'.');G.fama+=cor?6:1}}
 /* regra das federações de Jiu-Jitsu: faixa preta de judô não compete na branca, entra no mínimo na azul */
-function azulRegra(rep){const st=G.artes.bjj;if(!st||st.r>=5||G.idade<16||!G.artes.judo||!isTop('judo'))return false;
+const azulMotivo=()=>G.artes.judo&&isTop('judo')?'faixa preta de judô':(G.mma||((G.cartel.mma||{}).v||0)+((G.cartel.mma||{}).d||0)>0)?'lutador com cartel de MMA profissional':'';
+function azulRegra(rep){const st=G.artes.bjj;if(!st||st.r>=5||G.idade<16)return false;const mot=azulMotivo();if(!mot)return false;
   st.r=5;st.q=0;st.qr=0;st.promo=false;st.hold=null;st.xp=Math.max(st.xp,reqOf('bjj').xp[5]);st.var=estVar(st.est);
-  const t='Faixa azul de Jiu-Jitsu: como faixa preta de judô, você não pode competir na faixa branca e entra direto na azul.';
-  if(rep)rep.l.push(['gold',t]);marco('Faixa azul de Jiu-Jitsu (faixa preta de judô compete no mínimo na azul)');news(G.nome+' recebe a faixa azul de Jiu-Jitsu: faixa preta de judô não compete na branca.');return true}
+  const t='Faixa azul de Jiu-Jitsu: como '+mot+', você não pode competir na faixa branca e entra direto na azul.';
+  if(rep)rep.l.push(['gold',t]);marco('Faixa azul de Jiu-Jitsu ('+mot+' compete no mínimo na azul)');news(G.nome+' recebe a faixa azul de Jiu-Jitsu: '+mot+' não compete na branca.');return true}
 /* graus (esparadrapos) da faixa de Jiu-Jitsu: até 4 por faixa, conforme o progresso; na preta, os graus da IBJJF */
 function stripesOf(id){const st=G.artes[id];if(!st)return 0;if(isTop(id))return Math.min(6,gOf(id));const nx=nextR(id);if(nx>=ARTS[id].ranks.length)return 0;
   const Rq=reqOf(id),nq=needQ(id),pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,Rq.xp[nx]-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));return st.promo?4:Math.min(4,Math.floor(pr*4+1e-6))}
@@ -1579,7 +1580,7 @@ function fstep(d){const F=G&&G.fight;return F&&F.S&&String(F.step)===String(d.st
 const ACTN={
   menu(){UI.view='home'},
   novo(){UI.view='create';UI.tab='carreira';UI.draft={nome:'',ap:'',sexo:'m',bio:'medio',orig:'humilde',art:'bjj'}},
-  continuar(){if(!G)G=loadSave();if(G){UI.view='game';if(G.view==='legacy')UI.tab='trofeus';else if(G.view==='hub'&&azulRegra(null))UI.toast='Faixa preta de judô não compete na branca: seu Jiu-Jitsu passou para a faixa azul.'}},
+  continuar(){if(!G)G=loadSave();if(G){UI.view='game';if(G.view==='legacy')UI.tab='trofeus';else if(G.view==='hub'&&azulRegra(null))UI.toast='Pela regra das federações, '+azulMotivo()+' não compete na branca: seu Jiu-Jitsu passou para a faixa azul.'}},
   draft(d){UI.draft[d.f]=d.v},
   criar(){const n=document.getElementById('f-nome'),a=document.getElementById('f-ap');if(n)UI.draft.nome=n.value;if(a)UI.draft.ap=a.value;startCareer(UI.draft);UI.view='game';UI.tab='carreira';UI.est={}},
   tab(d){UI.tab=d.t},tabLeg(d){UI.tab=d.t},
@@ -1590,7 +1591,7 @@ const ACTN={
   mudar(d){const o=LOCS[d.l];if(G.view!=='hub'||!o||G.idade<18||d.l===(G.loc||'BR')||G.dinheiro<o.mud)return;G.dinheiro-=o.mud;G.loc=d.l;
     if(G.prof){news('Fim do contrato de professor com a '+G.prof.acad+' por causa da mudança.');G.prof=null}delete G.plano.minha;delete G.plano.prof;fixPlan();G.ev=defaultEv();marco('Muda para '+o.nome);news(G.nome+' se muda para '+o.nome+'.')},
   ptier(d){const t=+d.t,T=PREPT[t];if(!T.fama||G.fama>=T.fama)G.prepT=t},
-  matricular(d){if(G.view!=='hub'||G.artes[d.art]||!canEnroll(d.art).ok)return;G.dinheiro-=MATRICULA;const e1=pickEst();G.artes[d.art]={r:0,xp:0,q:0,qr:0,t:0,desde:G.ano,est:e1,var:estVar(e1)};if(d.art==='bjj'&&azulRegra(null))UI.toast='Como faixa preta de judô, você entra no Jiu-Jitsu direto na faixa azul.';
+  matricular(d){if(G.view!=='hub'||G.artes[d.art]||!canEnroll(d.art).ok)return;G.dinheiro-=MATRICULA;const e1=pickEst();G.artes[d.art]={r:0,xp:0,q:0,qr:0,t:0,desde:G.ano,est:e1,var:estVar(e1)};if(d.art==='bjj'){const mot=azulMotivo();if(azulRegra(null))UI.toast='Como '+mot+', você entra no Jiu-Jitsu direto na faixa azul.'}
     news(G.nome+' se matricula numa academia de '+ARTS[d.art].nome+'.');marco('Começa a treinar '+ARTS[d.art].nome+' aos '+G.idade+' anos');
     if(usedSlots()<slotsMax())G.plano[d.art]=1},
   avancar(){if(G.view!=='hub'||G.modal)return;advanceQuarter()},
