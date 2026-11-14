@@ -246,6 +246,9 @@ p{margin:0}
 .mdl .disc.m2{background:radial-gradient(circle at 35% 30%,#ffd2b0,#c27a43 55%,#7a421c);color:#fff}
 .mdl b{font-size:12.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 input.err{box-shadow:0 0 0 2px var(--red)}
+.recbox{border-left:3px solid var(--gold);padding:8px 0 8px 12px}
+tr.me td{font-weight:700;background:rgba(226,167,46,.2)}
+table.qm tr.tt td{font-weight:700;border-top:2px solid var(--ink)}
 .lnk.hof{font-weight:700;font-size:15px;text-align:left;padding:0}
 .trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .tro{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;background:#fff;border:1px solid var(--rule);border-radius:2px;padding:10px}
@@ -790,7 +793,7 @@ function degTick(id,st,rep){const Dg=DEG[id];if(!Dg)return;if(st.g==null){st.g=D
   if(st.gq>=q.q&&G.idade>=q.age){st.g=q.g;st.gq=0;const nm=degName(id,st.g),cor=st.g>=Dg.coral;rep.l.push(['gold','Graduação: '+nm+' de '+ARTS[id].nome+'!']);marco(nm+' de '+ARTS[id].nome);
     news(G.nome+' agora é '+nm.toLowerCase()+' de '+ARTS[id].nome+'.');G.fama+=cor?6:1}}
 /* regra das federações de Jiu-Jitsu: faixa preta de judô não compete na branca, entra no mínimo na azul */
-const azulMotivo=()=>G.artes.judo&&isTop('judo')?'faixa preta de judô':(G.mma||((G.cartel.mma||{}).v||0)+((G.cartel.mma||{}).d||0)>0)?'lutador com cartel de MMA profissional':'';
+const azulMotivo=()=>G.artes.judo&&isTop('judo')?'faixa preta de judô':(G.mma||((G.cartel.mma||{}).v||0)+((G.cartel.mma||{}).d||0)>0)?'lutador com cartel de MMA profissional':G.artes.wrest&&G.artes.wrest.r>=2&&G.idade>=17?'wrestler de nível universitário':'';
 function azulRegra(rep){const st=G.artes.bjj;if(!st||st.r>=5||G.idade<16)return false;const mot=azulMotivo();if(!mot)return false;
   st.r=5;st.q=0;st.qr=0;st.promo=false;st.hold=null;st.xp=Math.max(st.xp,reqOf('bjj').xp[5]);st.var=estVar(st.est);
   const t='Faixa azul de Jiu-Jitsu: como '+mot+', você não pode competir na faixa branca e entra direto na azul.';
@@ -1321,6 +1324,31 @@ function snapshot(g){g=g||G;return {nome:g.nome,ap:g.ap,sexo:g.sexo,art0:g.art0,
   marcos:(g.marcos||[]).map(m=>({ano:m.ano,idade:m.idade,t:m.t})),minha:g.minha?{nome:g.minha.nome,alunos:g.minha.alunos,fil:g.minha.fil||0}:null,
   bens:Object.keys(g.bens||{}).filter(k=>g.bens[k]!=null),loc:g.loc||'BR',dinheiro:Math.round(g.dinheiro),fama:Math.round(g.fama)}}
 const fixBest=s=>String(s||'').replace(/^(Ouro|Prata|Bronze) no (Jogos Olímpicos)/,'$1 nos $2').replace(/ (\d{4}) \1$/,' $1');
+/* ----- maiores campeões de cada campeonato: recordes reais (até 2026) + atletas do universo do jogo ----- */
+const REC_REAL={'3:bjj':[['Marcus "Buchecha" Almeida',13,'BRA'],['Gabi Pessanha',12,'BRA'],['Roger Gracie',10,'BRA'],['Bia Mesquita',10,'BRA'],['Leandro Lo',8,'BRA']],
+  '4':[['Gordon Ryan',7,'USA'],['Gabi Garcia',4,'BRA'],['Marcelo Garcia',4,'BRA'],['Saulo Ribeiro',2,'BRA'],['Giancarlo Bodoni',2,'USA'],['Kaynan Duarte',2,'BRA']],
+  '18':[['Teddy Riner',3,'FRA'],['Tadahiro Nomura',3,'JPN'],['Hitoshi Saito',2,'JPN'],['Peter Seisenbacher',2,'AUT'],['Waldemar Legień',2,'POL'],['David Douillet',2,'FRA'],['Ryoko Tani',2,'JPN'],['Masae Ueno',2,'JPN'],['Kayla Harrison',2,'USA'],['Shohei Ono',2,'JPN']],
+  '3:judo':[['Teddy Riner',11,'FRA'],['Ryoko Tani',7,'JPN'],['Tong Wen',7,'CHN']]};
+function artOfMed(m){return m.art||(/Jiu-Jitsu|IBJJF|CBJJ|ADCC|AJP/.test(m.nome)?'bjj':/Judô|Olímpicos/.test(m.nome)?'judo':/Muay/.test(m.nome)?'muay':/Boxe/.test(m.nome)?'boxe':/Wrestling/.test(m.nome)?'wrest':/Karatê/.test(m.nome)?'karate':'bjj')}
+const compKey=m=>m.tier>=4?String(m.tier):m.tier+':'+artOfMed(m);
+function compName(key){const [t,a]=key.split(':'),T=TIERS[+t];if(T.olimp)return 'Jogos Olímpicos (judô)';if(+t>=4)return T.ev(a).replace(/ (de )?[A-Z][a-z]+ \d{4}$/,'');return EVN[a]?EVN[a][+t]:T.nome}
+/* conta como título: ouro adulto; no Jiu-Jitsu, só na faixa preta (no ADCC, qualquer ouro) */
+const titleOk=m=>m.metal===0&&!m.juv&&!/Juvenil/.test(m.cat||'')&&(artOfMed(m)!=='bjj'||m.tier===4||/preta|coral/i.test(m.cat||''));
+function recBoard(key,ctx){const real=REC_REAL[key]||[],[t,a]=key.split(':'),T=TIERS[+t];
+  return withSeed(hashStr('rec|'+key+'|'+ctx.nome+'|'+ctx.ano0),()=>{
+    const pool=T.olimp?POOL.mundo.judo:(+t<=1||T.pf)?['BRA']:(t==='6'||t==='5')?['BRA','BRA','BRA','USA','ARG']:(POOL.mundo[a]||POOL.mundo.bjj);
+    const floor=real.length?real[real.length-1][1]:(eqOf(+t)>=3?9:eqOf(+t)>=2?7:5);
+    const L=real.map(([n,c,p])=>({n,c,p,real:1}));const novo=y=>{const p=pick(pool),nm=genName(p,R()<.5?'m':'f');return {n:nm.n+' '+nm.s,c:1,p,last:y}};
+    for(let i=L.length;i<12;i++){const x=novo(2026-ri(0,10));x.c=Math.max(1,Math.round(floor-1-(i-real.length)*floor/13-rnd(0,.8)));L.push(x)}
+    for(let y=2026;y<ctx.ano;y++){if(T.olimp&&(y<2028||y%4))continue;const act=L.filter(x=>!x.real&&y-x.last<=6);
+      if(act.length&&R()<.45){const w=pick(act);w.c++;w.last=y}else L.push(novo(y))}
+    return L})}
+function recRank(key,ctx){const L=recBoard(key,ctx).slice(),mine=ctx.trof.filter(m=>m.t==='med'&&compKey(m)===key&&titleOk(m)).length;
+  if(mine)L.push({n:ctx.nome,c:mine,me:1,p:'BRA'});L.sort((x,y)=>y.c-x.c||(y.me?1:0)-(x.me?1:0)||(y.real?1:0)-(x.real?1:0));
+  return {L,mine,pos:mine?1+L.filter(x=>x.c>mine).length:null,emp:mine?L.filter(x=>!x.me&&x.c===mine).length:0}}
+function recDestaques(ctx){const ks=[...new Set(ctx.trof.filter(m=>m.t==='med'&&titleOk(m)).map(compKey))];
+  return ks.map(k=>[k,recRank(k,ctx)]).filter(([k,r])=>r.pos&&r.pos<=3).sort((a,b)=>a[1].pos-b[1].pos||TIERS[+b[0].split(':')[0]].leg[0]-TIERS[+a[0].split(':')[0]].leg[0]).slice(0,4)
+    .map(([k,r])=>(r.pos===1&&!r.emp?'maior campeão':r.pos+'º maior campeão')+' da história do '+compName(k)+' ('+r.mine+' título'+(r.mine>1?'s':'')+')')}
 function retire(motivo){const L=legacy();G.fimMotivo=motivo||'escolha';G.legado=L;G.view='legacy';G.modal=null;G.pend=[];
   marco('Aposentadoria aos '+G.idade+' anos');
   const h=loadHall();h.push({nome:G.nome,s:L.s,tier:L.tier,ano:G.ano,idade:G.idade,best:bestTitle(),p:snapshot()});h.sort((a,b)=>b.s-a.s);saveHall(h.slice(0,10))}
@@ -1358,7 +1386,7 @@ function homeView(){const s=G||loadSave();const hall=loadHall();
    '<section class="panel stack"><div><div class="label">As seis artes</div><h2 class="h h-sm">Forças e fraquezas</h2></div><div class="artlist">'+
    ART_IDS.map(id=>'<div class="artrow">'+beltHTML(id,ARTS[id].ranks.length-1)+'<div class="small"><b>'+ARTS[id].nome+'</b> <span class="muted">'+esc(ARTS[id].forte)+'</span></div></div>').join('')+'</div>'+
    (hall.length?'<div class="label">Hall da fama deste navegador</div><div class="tbl"><table><tbody>'+hall.slice(0,6).map((h,i)=>'<tr><td><button class="lnk hof" data-a="perfil" data-i="'+i+'">'+esc(h.nome)+'</button><div class="tiny muted">'+esc(fixBest(h.best))+'</div></td><td>'+esc(h.tier)+'</td><td class="num">'+h.s+'</td></tr>').join('')+'</tbody></table></div>':'')+
-   '<p class="tiny muted">Os torneios amadores usam os nomes reais dos circuitos (CBJJ, IBJJF, ADCC, IJF, IFMA, UWW, WKF e outros), e as academias e patrocinadores usam marcas reais. Jogo de fã, sem vínculo com essas entidades e marcas. As organizações de MMA (Shooto Brasil, Jungle Fight, LFA e UFC) também são reais; todos os atletas são fictícios.</p></section></div>'}
+   '<p class="tiny muted">Os torneios amadores usam os nomes reais dos circuitos (CBJJ, IBJJF, ADCC, IJF, IFMA, UWW, WKF e outros), e as academias e patrocinadores usam marcas reais. Jogo de fã, sem vínculo com essas entidades e marcas. As organizações de MMA (Shooto Brasil, Jungle Fight, LFA e UFC) também são reais; os atletas do jogo são fictícios; os rankings históricos citam recordistas reais até 2026.</p></section></div>'}
 
 function hallProfile(i){const h=loadHall()[i];if(!h)return null;if(h.p)return h.p;const s=loadSave();
   if(s&&s.view==='legacy'&&s.nome===h.nome&&s.legado&&s.legado.s===h.s)return snapshot(s);return null}
@@ -1375,10 +1403,11 @@ function perfilView(){const hall=loadHall(),h=hall[UI.perfil];if(!h)return '<sec
   return '<div class="stack">'+head+(p.legado?'<p style="font-size:17px;max-width:640px">'+esc(p.legado.desc)+'</p>':'')+
    '<div class="row" style="gap:28px">'+stat('Legado',h.s)+stat('Idade final',p.idade)+stat('Carreira',p.ano0+'–'+p.ano)+stat('Cinturões',belts.length)+stat('Medalhas',meds.length)+(mma?stat('MMA',mma.v+'-'+mma.d+'-'+(mma.e||0)):'')+stat('Dinheiro',fmt$(p.dinheiro))+'</div>'+
    '<div class="small">Maior conquista: <b>'+esc(fixBest(h.best))+'</b> · Começou no '+esc(ARTS[p.art0]?ARTS[p.art0].nome:'')+(p.loc&&p.loc!=='BR'?' · terminou morando '+({USA:'nos Estados Unidos',EUR:'na Europa (Portugal)'}[p.loc]||'fora'):'')+'</div>'+
+   (()=>{const d=recDestaques({nome:p.nome,ano0:p.ano0,ano:p.ano,trof:p.trof});return d.length?'<div class="small">Recordes: '+d.map(esc).join(' · ')+'</div>':''})()+
    (fora.length?'<div class="small">Fora do tatame: '+fora.join(' · ')+'</div>':'')+
    '<div><button class="btn btn-gold" data-a="menu">Voltar ao início</button></div></section>'+
    '<section class="panel stack"><div><div class="label">Graduações</div><h2 class="h h-sm">Faixas</h2></div><div class="artlist">'+artes+'</div>'+(cart?'<div class="label">Cartel</div><div class="row">'+cart+'</div>':'')+'</section>'+
-   trophyHTML(p.trof,p.marcos)+'</div>'}
+   trophyHTML(p.trof,p.marcos,{nome:p.nome,ano0:p.ano0,ano:p.ano,trof:p.trof})+'</div>'}
 function createView(){const d=UI.draft;
   const pk=(f,v,inner)=>'<button class="pick" data-a="draft" data-fast="1" data-f="'+f+'" data-v="'+v+'" aria-pressed="'+(d[f]===v)+'">'+inner+'</button>';
   return '<section class="panel stack" style="max-width:1000px;margin:0 auto"><div><div class="label">Nova carreira</div><h2 class="h">Quem vai subir no tatame?</h2></div>'+
@@ -1532,13 +1561,26 @@ function siglaOf(m){const t=m.tier,T=TIERS[t];if(T.olimp)return 'JOGOS';if(t===4
   const art=m.art||(/Jiu-Jitsu/.test(m.nome)?'bjj':/Judô/.test(m.nome)?'judo':/Muay/.test(m.nome)?'muay':/Boxe/.test(m.nome)?'boxe':/Wrestling/.test(m.nome)?'wrest':/Karatê/.test(m.nome)?'karate':'');
   return (SIG_STD[art]||['FED','BRAS','PAN','MUND'])[Math.min(3,t)]}
 function ribOf(t){const T=TIERS[t];if(T.olimp)return ['#0081c8','#fcb131'];if(t===4)return ['#151515','#d4a017'];if(T.pf)return ['#009c3b','#ffdf00'];if(t===6||t===7)return ['#b21f2d','#f4f4f4'];if([8,9,10,11].includes(t))return ['#1d3f8f','#f4f4f4'];return [['#c8312b','#f4f4f4'],['#1d6b3a','#f4f4f4'],['#1d3f8f','#f4f4f4'],['#151515','#e2a72e']][Math.min(3,t)]}
-function trophyView(){return trophyHTML(G.trof,G.marcos)}
-function trophyHTML(trof,marcos){const belts=trof.filter(t=>t.t==='belt'),meds=trof.filter(t=>t.t==='med');
-  const grp=[...new Set(meds.map(m=>m.tier))].sort((a,b)=>TIERS[b].leg[0]-TIERS[a].leg[0]).map(tier=>[tier,meds.filter(m=>m.tier===tier).sort((a,b)=>a.metal-b.metal||b.ano-a.ano)]).filter(x=>x[1].length);
+function trophyView(){return trophyHTML(G.trof,G.marcos,{nome:G.nome,ano0:G.ano0,ano:G.ano,trof:G.trof})}
+function trophyHTML(trof,marcos,ctx){ctx=ctx||{nome:G.nome,ano0:G.ano0,ano:G.ano,trof};const belts=trof.filter(t=>t.t==='belt'),meds=trof.filter(t=>t.t==='med');
+  const lg=k=>TIERS[+k.split(':')[0]].leg[0];
+  const grp=[...new Set(meds.map(compKey))].sort((a,b)=>lg(b)-lg(a)||a.localeCompare(b)).map(k=>[k,meds.filter(m=>compKey(m)===k).sort((a,b)=>a.metal-b.metal||b.ano-a.ano)]);
   const tile=m=>'<div class="mdl" title="'+esc(['Ouro','Prata','Bronze'][m.metal]+' · '+m.nome+' · '+m.cat+' · '+m.ano)+'"><div class="rib" style="--r1:'+ribOf(m.tier)[0]+';--r2:'+ribOf(m.tier)[1]+'"></div><div class="disc m'+m.metal+'"><span><small'+(siglaOf(m).length>5?' class="lg"':'')+'>'+siglaOf(m)+'</small>'+(m.metal+1)+'º</span></div><b>'+esc(m.nome)+'</b><span class="tiny muted">'+esc(m.cat)+' · '+m.ano+'</span></div>';
+  const cnt=ms=>[[0,'ouro'],[1,'prata'],[2,'bronze']].map(([k,n])=>{const c=ms.filter(x=>x.metal===k).length;return c?c+' '+n+(c>1?'s':''):''}).filter(Boolean).join(' · ');
+  const byArt={};meds.forEach(m=>{const a=artOfMed(m),o=byArt[a]=byArt[a]||[0,0,0,0];o[m.metal]++;if(titleOk(m))o[3]++});
+  const tot=[0,1,2,3].map(i=>Object.values(byArt).reduce((s,o)=>s+o[i],0));
+  const quadro=meds.length?'<div class="tbl"><table class="qm"><thead><tr><th>Arte</th><th class="num">Ouro</th><th class="num">Prata</th><th class="num">Bronze</th><th class="num">Total</th><th class="num">Títulos adultos</th></tr></thead><tbody>'+
+    Object.entries(byArt).sort((x,y)=>y[1][0]-x[1][0]||(y[1][0]+y[1][1]+y[1][2])-(x[1][0]+x[1][1]+x[1][2])).map(([a,o])=>'<tr><td>'+(ARTS[a]?ARTS[a].nome:a)+'</td><td class="num">'+o[0]+'</td><td class="num">'+o[1]+'</td><td class="num">'+o[2]+'</td><td class="num">'+(o[0]+o[1]+o[2])+'</td><td class="num">'+o[3]+'</td></tr>').join('')+
+    (Object.keys(byArt).length>1?'<tr class="tt"><td>Total</td><td class="num">'+tot[0]+'</td><td class="num">'+tot[1]+'</td><td class="num">'+tot[2]+'</td><td class="num">'+(tot[0]+tot[1]+tot[2])+'</td><td class="num">'+tot[3]+'</td></tr>':'')+'</tbody></table></div><p class="tiny muted">Títulos adultos: ouro fora da categoria juvenil; no Jiu-Jitsu, só os da faixa preta (no ADCC, qualquer ouro). Toque em "Maiores campeões" para ver o ranking histórico de cada campeonato.</p>':'';
+  const recHTML=k=>{const r=recRank(k,ctx),top=r.L.slice(0,10),inTop=top.some(x=>x.me);
+    const row=x=>'<tr'+(x.me?' class="me"':'')+'><td class="num">'+(1+r.L.filter(y=>y.c>x.c).length)+'º</td><td>'+esc(x.n)+(x.me?' (você)':'')+' '+cc(x.p)+(x.real?' <span class="tiny muted">recorde real</span>':'')+'</td><td class="num">'+x.c+'</td></tr>';
+    return '<div class="recbox stack-s"><div class="small">'+(r.pos?'Você é o <b>'+r.pos+'º maior campeão</b> da história do '+esc(compName(k))+', com '+r.mine+' título'+(r.mine>1?'s':'')+(r.emp?' (empatado com '+r.emp+')':'')+'.':'Você ainda não tem título adulto neste campeonato.')+'</div>'+
+     '<div class="tbl"><table><thead><tr><th>#</th><th>Atleta</th><th class="num">Títulos</th></tr></thead><tbody>'+top.map(row).join('')+(r.pos&&!inTop?'<tr><td colspan="3" class="muted">…</td></tr>'+row(r.L.find(x=>x.me)):'')+'</tbody></table></div>'+
+     '<p class="tiny muted">'+(REC_REAL[k]?'Os marcados como recorde real são números reais até 2026 (pesquisa de nov/2026). ':'')+'Os outros atletas são do universo do jogo e seguem ganhando títulos com o passar dos anos.</p></div>'};
   return '<div class="stack"><section class="panel stack"><div><div class="label">Sala de troféus</div><h2 class="h">Cinturões</h2></div>'+
    (belts.length?'<div class="trophies">'+belts.map(b=>'<div class="tro"><div class="beltico" aria-hidden="true"></div><div><b>'+esc(b.nome)+'</b><div class="tiny muted">'+esc(b.classe)+' · '+b.ano+(b.fim?'–'+b.fim:' · atual')+(b.def?' · '+b.def+' defesa(s)':'')+'</div></div></div>').join('')+'</div>':'<p class="muted">Nenhum cinturão ainda. Os cinturões são disputados no MMA profissional.</p>')+'</section>'+
-   '<section class="panel stack"><div><div class="label">Medalhas · '+meds.length+'</div><h2 class="h">Campeonatos</h2></div>'+(grp.length?grp.map(([tier,ms])=>'<div class="stack-s"><div class="label">'+(TIERS[tier].olimp?'Jogos Olímpicos':TIERS[tier].pf||tier>=4?evName('bjj',tier):TIERS[tier].nome)+' · '+[[0,'ouro'],[1,'prata'],[2,'bronze']].map(([k,n])=>{const c=ms.filter(x=>x.metal===k).length;return c?c+' '+n+(c>1?'s':''):''}).filter(Boolean).join(' · ')+'</div><div class="medals">'+ms.map(tile).join('')+'</div></div>').join(''):'<p class="muted">Nenhuma medalha ainda.</p>')+'</section>'+
+   '<section class="panel stack"><div><div class="label">Medalhas · '+meds.length+'</div><h2 class="h">Campeonatos</h2></div>'+quadro+
+   (grp.length?grp.map(([k,ms])=>'<div class="stack-s"><div class="between"><div class="label">'+esc(compName(k))+' · '+cnt(ms)+'</div><button class="btn btn-sm" data-a="rec" data-fast="1" data-k="'+k+'" aria-expanded="'+(UI.recOpen===k)+'">'+(UI.recOpen===k?'Fechar ranking':'Maiores campeões')+'</button></div>'+(UI.recOpen===k?recHTML(k):'')+'<div class="medals">'+ms.map(tile).join('')+'</div></div>').join(''):'<p class="muted">Nenhuma medalha ainda.</p>')+'</section>'+
    '<section class="panel stack"><div><div class="label">Marcos</div><h2 class="h h-sm">Linha do tempo</h2></div><div class="timeline">'+marcos.map(m=>'<div><span class="num tiny muted">'+m.ano+' · '+m.idade+'a</span><span>'+esc(m.t)+'</span></div>').join('')+'</div></section></div>'}
 
 function preView(){const F=G.fight,pa=effA(F.sp==='mma'?'mma':''),adv=advice(F.sp,pa,F.bouts.map(b=>b.a));
@@ -1589,7 +1631,7 @@ function legacyView(){const L=G.legado||legacy(),c=G.cartel,meds=G.trof.filter(t
   const stat=(l,v)=>'<div><div class="label">'+l+'</div><div class="h num">'+v+'</div></div>';
   return '<div class="stack"><section class="panel dark stack"><div class="label">Fim de carreira · '+mot+'</div><div class="leg-h">'+esc(L.tier)+'</div><p style="font-size:18px;max-width:640px">'+esc(G.nome)+': '+esc(L.desc)+'</p>'+
    '<div class="row" style="gap:28px">'+stat('Legado',L.s)+stat('Idade',G.idade)+stat('Cinturões',belts.length)+stat('Medalhas',meds.length)+stat('Graduação máxima',tops.length)+(c.mma?stat('MMA',c.mma.v+'-'+c.mma.d+'-'+c.mma.e):'')+stat('Dinheiro',fmt$(G.dinheiro))+'</div>'+
-   '<div class="small">Maior conquista: <b>'+esc(bestTitle())+'</b></div>'+(BENS.some(b=>temBem(b.id))||G.minha?'<div class="small">Fora do tatame: '+[G.minha?esc(G.minha.nome)+' ('+G.minha.alunos+' alunos'+(G.minha.fil?', '+G.minha.fil+' filiais':'')+')':''].concat(BENS.filter(b=>temBem(b.id)).map(b=>b.id==='copa'?'Copa '+esc(G.nome.split(' ').pop()):b.nome.toLowerCase())).filter(Boolean).join(' · ')+'</div>':'')+'<div class="row"><button class="btn btn-gold" data-a="novo">Nova carreira</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="cartel">Ver cartel</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="trofeus">Ver troféus</button></div></section>'+
+   '<div class="small">Maior conquista: <b>'+esc(bestTitle())+'</b></div>'+(()=>{const d=recDestaques({nome:G.nome,ano0:G.ano0,ano:G.ano,trof:G.trof});return d.length?'<div class="small">Recordes: '+d.map(esc).join(' · ')+'</div>':''})()+(BENS.some(b=>temBem(b.id))||G.minha?'<div class="small">Fora do tatame: '+[G.minha?esc(G.minha.nome)+' ('+G.minha.alunos+' alunos'+(G.minha.fil?', '+G.minha.fil+' filiais':'')+')':''].concat(BENS.filter(b=>temBem(b.id)).map(b=>b.id==='copa'?'Copa '+esc(G.nome.split(' ').pop()):b.nome.toLowerCase())).filter(Boolean).join(' · ')+'</div>':'')+'<div class="row"><button class="btn btn-gold" data-a="novo">Nova carreira</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="cartel">Ver cartel</button><button class="btn btn-ghost-l" data-a="tabLeg" data-t="trofeus">Ver troféus</button></div></section>'+
    (UI.tab==='cartel'?cartelView():trophyView())+'</div>'}
 
 function modalView(){const m=G.modal;if(!m)return '';
@@ -1624,7 +1666,8 @@ function nextModal(){G.modal=G.pend.length?G.pend.shift():null}
 function fstep(d){const F=G&&G.fight;return F&&F.S&&String(F.step)===String(d.step)?F:null}
 const ACTN={
   menu(){UI.view='home'},
-  perfil(d){UI.perfil=+d.i;UI.view='perfil'},
+  perfil(d){UI.perfil=+d.i;UI.view='perfil';UI.recOpen=null},
+  rec(d){UI.recOpen=UI.recOpen===d.k?null:d.k},
   novo(){UI.view='create';UI.tab='carreira';UI.draft={nome:'',ap:'',sexo:'m',bio:'medio',orig:'humilde',art:'bjj'}},
   continuar(){if(!G)G=loadSave();if(G){UI.view='game';if(G.view==='legacy')UI.tab='trofeus';else if(G.view==='hub'&&azulRegra(null))UI.toast='Pela regra das federações, '+azulMotivo()+' não compete na branca: seu Jiu-Jitsu passou para a faixa azul.'}},
   draft(d){UI.draft[d.f]=d.v},
