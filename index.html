@@ -815,7 +815,7 @@ function azulRegra(rep){const st=G.artes.bjj;if(!st||st.r>=5||G.idade<16)return 
   if(rep)rep.l.push(['gold',t]);marco('Faixa azul de Jiu-Jitsu ('+mot+' compete no mínimo na azul)');news(G.nome+' recebe a faixa azul de Jiu-Jitsu: '+mot+' não compete na branca.');return true}
 /* graus (esparadrapos) da faixa de Jiu-Jitsu: até 4 por faixa, conforme o progresso; na preta, os graus da IBJJF */
 function stripesOf(id){const st=G.artes[id];if(!st)return 0;if(isTop(id))return Math.min(6,gOf(id));const nx=nextR(id);if(nx>=ARTS[id].ranks.length)return 0;
-  const Rq=reqOf(id),nq=needQ(id),pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,Rq.xp[nx]-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));return st.promo?4:Math.min(4,Math.floor(pr*4+1e-6))}
+  const Rq=reqOf(id),nq=needQ(id),pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,reqAt(id,nx,'xp')-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));return st.promo?4:Math.min(4,Math.floor(pr*4+1e-6))}
 /* calendário extra das outras artes: [tier, arte, trimestres, exigência] */
 const EXTRA=[{t:19,art:'judo',qs:[1]},{t:20,art:'judo',qs:[1,3],adu:1,req:'sel'},{t:21,art:'judo',qs:[0],adu:1,req:'elite'},
   {t:22,art:'boxe',qs:[2]},{t:23,art:'boxe',qs:[1],adu:1,req:'sel'},
@@ -980,7 +980,7 @@ function canEnroll(id){if(G.idade<16&&FAM[id]!==FAM[G.art0])return {ok:false,why
   if(G.dinheiro<MATRICULA)return {ok:false,why:'Matrícula de '+fmt$(MATRICULA)};return {ok:true}}
 function nextR(id){const st=G.artes[id];if(id==='bjj'&&st.r<5&&(G.idade>=16||st.r===4))return 5;
   if(id==='judo'&&st.r<4&&G.idade>=16)return 4;return st.r+1}
-function reqAt(id,nx,k){const Rq=reqOf(id),st=G.artes[id];if(((id==='bjj'&&nx===5)||(id==='judo'&&nx===4&&st.r<3))&&st.r>=1&&(k==='q'||k==='qmin'))return k==='q'?2:1;return Rq[k][nx]}
+function reqAt(id,nx,k){const Rq=reqOf(id),st=G.artes[id];if(k==='xp'&&id==='judo'&&nx===4&&st.r<3)return Rq.xp[3];if(((id==='bjj'&&nx===5)||(id==='judo'&&nx===4&&st.r<3))&&st.r>=1&&(k==='q'||k==='qmin'))return k==='q'?2:1;return Rq[k][nx]}
 function needQ(id){const st=G.artes[id],nx=nextR(id);return Math.max(reqAt(id,nx,'qmin'),Math.round(reqAt(id,nx,'q')*EST[st.est||'pad'].tq*(st.var||1)))}
 function evTier(key){if(!key)return null;if(key.startsWith('T:'))return G.q;if(key.startsWith('O:'))return 18;if(key.startsWith('A:'))return 4;const m=/^[XI](\d+):/.exec(key);return m?+m[1]:null}
 /* inscrição (1º lote) + deslocamento; juvenil paga menos */
@@ -1315,7 +1315,7 @@ function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)|
   const synAntes=activeSyn().map(s=>s.nome);
   for(const [id,st] of Object.entries(G.artes)){const tr=(G.plano[id]||0)>0||teachN(id)>0||(profOn()&&G.prof.art===id);st.q+=tr?1:.5;st.qr=(st.qr!=null?st.qr:0)+(tr?1:.5);
     const Rq=reqOf(id),nx=nextR(id);if(nx>=ARTS[id].ranks.length){degTick(id,st,rep);continue}
-    const normal=st.xp>=Rq.xp[nx]&&st.qr>=reqAt(id,nx,'qmin')&&st.q>=needQ(id);
+    const normal=st.xp>=reqAt(id,nx,'xp')&&st.qr>=reqAt(id,nx,'qmin')&&st.q>=needQ(id);
     if(st.hold!=null&&st.hold>=absQ()&&!st.promo)continue;
     if(id==='bjj'&&nx>=1&&nx<=4&&G.idade<16&&normal&&!st.promo&&st.ask!==absQ()){const golds=G.med.filter(m=>m.art==='bjj'&&m.place===1&&(G.ano-m.ano)*4+G.q-0<=5).length;
       if(golds>=2){st.ask=absQ();const pulo=Math.min(4,nx+1),okAge=G.idade>=Rq.age[pulo];G.pend.push({tipo:'mestre',art:id,nx,pulo:okAge?pulo:nx,est:st.est||'pad'});continue}}
@@ -1489,12 +1489,14 @@ function degHTML(id){const Dg=DEG[id];if(!Dg)return '<div class="tiny"><b>Gradua
 function artsCard(){const ids=Object.keys(G.artes),rest=ART_IDS.filter(a=>!G.artes[a]),syn=activeSyn();
   const row=id=>{const A=ARTS[id],st=G.artes[id],Rq=reqOf(id),bf=Rq.buff[st.r],nx=nextR(id);
     const bl=Object.entries(A.w).filter(([k,w])=>bf*w>=.5).sort((x,y)=>y[1]-x[1]).map(([k,w])=>'<b>+'+r1(bf*w)+'</b> '+ATTRS[k]).join(' · ');
-    let nxt='';if(nx<A.ranks.length){const nq=needQ(id),qr=st.qr!=null?st.qr:st.q,xl=Math.max(0,Rq.xp[nx]-st.xp),ql=Math.max(0,nq-st.q,reqAt(id,nx,'qmin')-qr),parts=[];
+    let nxt='';if(nx<A.ranks.length){const nq=needQ(id),qr=st.qr!=null?st.qr:st.q,xl=Math.max(0,reqAt(id,nx,'xp')-st.xp),ql=Math.max(0,nq-st.q,reqAt(id,nx,'qmin')-qr),parts=[];
       if(xl>0)parts.push(Math.ceil(xl)+' pts de técnica');if(ql>0)parts.push('cerca de '+Math.ceil(ql)+' trimestre(s) de faixa');if(Rq.age[nx]>G.idade)parts.push('idade mínima '+Rq.age[nx]+' anos');
-      const pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,Rq.xp[nx]-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));
+      const pr=Math.min(clamp((st.xp-Rq.xp[st.r])/Math.max(1,reqAt(id,nx,'xp')-Rq.xp[st.r]),0,1),clamp(st.q/Math.max(1,nq),0,1));
       nxt='<div class="tiny muted">Próxima: <b>'+A.ranks[nx]+'</b> (bônus +'+Rq.buff[nx]+') · tempo nesta academia '+nq+' tri · mínimo oficial '+reqAt(id,nx,'qmin')+' tri</div>'+
         '<div class="tiny">'+(st.promo?'<b>Graduação garantida pelo título mundial</b>'+(Rq.age[nx]>G.idade?' ao completar '+Rq.age[nx]+' anos':' no fim do trimestre'):'Faltam: '+(parts.join(' · ')||'nada, a faixa sai no fim do trimestre'))+'</div><div class="meter gold"><i style="width:'+pct(st.promo?1:pr)+'%"></i></div>'}
     else nxt=degHTML(id);
+    if(id==='judo'&&nx===4&&st.r<3)nxt+='<div class="tiny">Por que laranja? Pela regra da CBJ, a partir dos 16 anos as faixas cinza, azul e amarela não são mais exigidas: da '+A.ranks[st.r].toLowerCase()+' você vai direto para a laranja.</div>';
+    if(id==='bjj'&&nx===5&&st.r<4)nxt+='<div class="tiny">Por que azul? As faixas infantis do Jiu-Jitsu acabam aos 16 anos: depois da '+A.ranks[st.r].toLowerCase()+', a próxima é a azul.</div>';
     if(id==='judo')nxt+='<div class="tiny muted">Próximos Jogos Olímpicos: <b>'+nextOlimp()+'</b>. Vaga pelo ranking: medalha no Mundial ou ouro no Pan-Americano (adulto) nos 2 anos anteriores.</div>';
     return '<div class="art"><div class="stack-s"><div class="row">'+beltHTML(id,st.r)+'<span class="an">'+A.nome+'</span><span class="muted small">'+(DEG[id]&&isTop(id)?degName(id,gOf(id)):A.ranks[st.r]+(id==='bjj'&&stripesOf(id)?' · '+stripesOf(id)+' grau'+(stripesOf(id)>1?'s':''):''))+'</span></div>'+
       '<div class="buffs">'+(bl||'Sem bônus ainda: gradue para ganhar bônus.')+'</div>'+nxt+'<div class="tiny muted">'+(teachLvl(id)===2?'Pode dar aulas para adultos.':teachLvl(id)===1?'Instrutor de turmas infantis. Turmas adultas a partir da '+A.ranks[(TEACH[id]||[0,A.ranks.length-2])[1]].toLowerCase()+'.':'Pode dar aulas para crianças a partir da '+A.ranks[(TEACH[id]||[A.ranks.length-3])[0]].toLowerCase()+'.')+'</div><div class="tiny muted">Mestre: <b>'+EST[st.est||'pad'].nome+'</b>, '+EST[st.est||'pad'].desc+'.</div></div><div class="tiny muted" style="text-align:right">'+esc(acadName(id))+'<br>desde '+st.desde+(profOn()&&G.prof.art===id?'':'<br><button class="lnk" style="color:var(--ink-2);padding:2px 0" data-a="trocar" data-art="'+id+'" '+(G.dinheiro<MATRICULA||absQ()-(st.troca!=null?st.troca:-9)<4?'disabled':'')+' title="Uma troca por ano">Trocar de academia ('+fmt$(MATRICULA)+')</button>')+'</div></div>'};
