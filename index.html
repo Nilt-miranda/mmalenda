@@ -370,7 +370,7 @@ const HALF={bjj:6,judo:6,muay:6};
 const TEACH={muay:[6,7]};
 const half=a=>HALF[a]!=null?HALF[a]:Math.ceil((ARTS[a].ranks.length-1)/2);
 /* fração do caminho adulto até a preta (faixas infantis contam como branca) */
-function beltFrac(id,r){if(id==='bjj')return r<5?0:(r-4)/4;if(id==='judo')return r<4?0:(r-3)/5;return r/(ARTS[id].ranks.length-1)}
+function beltFrac(id,r){if(id==='bjj')return r<5?0:(r-4)/4;if(id==='judo')return r<3?0:(r-2)/6;return r/(ARTS[id].ranks.length-1)}
 const bfOf=(id,r)=>(id==='bjj'||id==='judo')?.2+.8*beltFrac(id,r):(r+1)/ARTS[id].ranks.length;
 const RQX={bjj:[5,6],judo:[4,6],muay:[3,6]};
 const rqIdx=(id,f)=>RQX[id]?RQX[id][f<.3?0:1]:Math.ceil((ARTS[id].ranks.length-1)*f);
@@ -979,8 +979,8 @@ function tierOk(id,t){if(t===0)return {ok:true};const T=ACAD[t],st=G.artes[id];
 function canEnroll(id){if(G.idade<16&&FAM[id]!==FAM[G.art0])return {ok:false,why:'A partir dos 16 anos. Até lá, só artes de '+(FAM[G.art0]==='g'?'agarre (Jiu-Jitsu, Judô, Wrestling)':'trocação (Muay Thai, Boxe, Karatê)')+'.'};
   if(G.dinheiro<MATRICULA)return {ok:false,why:'Matrícula de '+fmt$(MATRICULA)};return {ok:true}}
 function nextR(id){const st=G.artes[id];if(id==='bjj'&&st.r<5&&(G.idade>=16||st.r===4))return 5;
-  if(id==='judo'&&st.r<4&&G.idade>=16)return 4;return st.r+1}
-function reqAt(id,nx,k){const Rq=reqOf(id),st=G.artes[id];if(k==='xp'&&id==='judo'&&nx===4&&st.r<3)return Rq.xp[3];if(((id==='bjj'&&nx===5)||(id==='judo'&&nx===4&&st.r<3))&&st.r>=1&&(k==='q'||k==='qmin'))return k==='q'?2:1;return Rq[k][nx]}
+  if(id==='judo'&&st.r<3&&G.idade>=16)return 3;return st.r+1}
+function reqAt(id,nx,k){const Rq=reqOf(id),st=G.artes[id];if(((id==='bjj'&&nx===5)||(id==='judo'&&nx===3&&st.r<2))&&st.r>=1&&(k==='q'||k==='qmin'))return k==='q'?2:1;return Rq[k][nx]}
 function needQ(id){const st=G.artes[id],nx=nextR(id);return Math.max(reqAt(id,nx,'qmin'),Math.round(reqAt(id,nx,'q')*EST[st.est||'pad'].tq*(st.var||1)))}
 function evTier(key){if(!key)return null;if(key.startsWith('T:'))return G.q;if(key.startsWith('O:'))return 18;if(key.startsWith('A:'))return 4;const m=/^[XI](\d+):/.exec(key);return m?+m[1]:null}
 /* inscrição (1º lote) + deslocamento; juvenil paga menos */
@@ -1305,11 +1305,11 @@ function equipCheck(){if(equipOn()&&G.equip.ate>absQ()+1)return;if(!(G.fama>=3||
 function sponsorCheck(){if(G.fama<10||(G.patro&&G.patro.ate>absQ()+1)||R()>.4)return;const org=G.mma?G.mma.org:-1;
   const base=Math.round(G.fama*95*(1+(org+1)*.55)/50)*50;const m=shuffle(MARCAS.slice());
   G.pend.push({tipo:'patro',ofs:[{marca:m[0],valor:Math.round(base*1.25/50)*50,dur:2},{marca:m[1],valor:Math.round(base*.85/50)*50,dur:6}]})}
-/* no aniversário: faixa infantil do Jiu-Jitsu vira azul aos 16; faixas básicas do Judô viram laranja aos 18 */
+/* no aniversário: faixa infantil do Jiu-Jitsu vira azul aos 16; cinza e azul do Judô viram amarela aos 18 */
 function ageBelts(rep){const conv=(id,de,para,idade,txt)=>{const st=G.artes[id];const a=ARTS[id].ranks[st.r].toLowerCase();st.r=para;st.q=0;st.qr=0;st.promo=false;st.hold=null;st.var=estVar(st.est);st.xp=Math.max(st.xp,REQS[id].xp[para]);
     const b=ARTS[id].ranks[para];rep.l.push(['gold',txt+': da '+a+' para a '+b.toLowerCase()+' de '+ARTS[id].nome+'!']);marco(b+' de '+ARTS[id].nome+' ('+txt.toLowerCase()+')');news(G.nome+' troca a '+a+' pela '+b.toLowerCase()+' de '+ARTS[id].nome+'.')};
   const bj=G.artes.bjj;if(bj&&bj.r>=1&&bj.r<=4&&G.idade>=16)conv('bjj',bj.r,5,16,'Aos 16 anos a faixa infantil acaba');
-  const ju=G.artes.judo;if(ju&&ju.r>=1&&ju.r<=3&&G.idade>=18)conv('judo',ju.r,4,18,'Aos 18 anos você passa para as faixas adultas');}
+  const ju=G.artes.judo;if(ju&&ju.r>=1&&ju.r<=2&&G.idade>=18)conv('judo',ju.r,3,18,'Aos 18 anos você passa para as faixas adultas');}
 function endQuarter(){const rep={t:QN[G.q]+' de '+G.ano,l:[],g:(G.ult&&G.ult.g)||{},fin:G.ult&&G.ult.fin};
   if(G.ult&&G.ult.les)rep.l.push(['red','Lesão no treino: '+G.ult.les]);
   const synAntes=activeSyn().map(s=>s.nome);
@@ -1495,7 +1495,7 @@ function artsCard(){const ids=Object.keys(G.artes),rest=ART_IDS.filter(a=>!G.art
       nxt='<div class="tiny muted">Próxima: <b>'+A.ranks[nx]+'</b> (bônus +'+Rq.buff[nx]+') · tempo nesta academia '+nq+' tri · mínimo oficial '+reqAt(id,nx,'qmin')+' tri</div>'+
         '<div class="tiny">'+(st.promo?'<b>Graduação garantida pelo título mundial</b>'+(Rq.age[nx]>G.idade?' ao completar '+Rq.age[nx]+' anos':' no fim do trimestre'):'Faltam: '+(parts.join(' · ')||'nada, a faixa sai no fim do trimestre'))+'</div><div class="meter gold"><i style="width:'+pct(st.promo?1:pr)+'%"></i></div>'}
     else nxt=degHTML(id);
-    if(id==='judo'&&nx===4&&st.r<3)nxt+='<div class="tiny">Por que laranja? Pela regra da CBJ, a partir dos 16 anos as faixas cinza, azul e amarela não são mais exigidas: da '+A.ranks[st.r].toLowerCase()+' você vai direto para a laranja.</div>';
+    if(id==='judo'&&nx===3&&st.r<2)nxt+='<div class="tiny">Por que amarela? Cinza e azul são faixas só do caminho infantil. A partir dos 16 anos, da '+A.ranks[st.r].toLowerCase()+' você vai direto para a amarela, a primeira do caminho adulto (amarela, laranja, verde, roxa, marrom e preta).</div>';
     if(id==='bjj'&&nx===5&&st.r<4)nxt+='<div class="tiny">Por que azul? As faixas infantis do Jiu-Jitsu acabam aos 16 anos: depois da '+A.ranks[st.r].toLowerCase()+', a próxima é a azul.</div>';
     if(id==='judo')nxt+='<div class="tiny muted">Próximos Jogos Olímpicos: <b>'+nextOlimp()+'</b>. Vaga pelo ranking: medalha no Mundial ou ouro no Pan-Americano (adulto) nos 2 anos anteriores.</div>';
     return '<div class="art"><div class="stack-s"><div class="row">'+beltHTML(id,st.r)+'<span class="an">'+A.nome+'</span><span class="muted small">'+(DEG[id]&&isTop(id)?degName(id,gOf(id)):A.ranks[st.r]+(id==='bjj'&&stripesOf(id)?' · '+stripesOf(id)+' grau'+(stripesOf(id)>1?'s':''):''))+'</span></div>'+
@@ -1509,7 +1509,7 @@ function artsCard(){const ids=Object.keys(G.artes),rest=ART_IDS.filter(a=>!G.art
    '<li>Medalhas encurtam o tempo: ouro no Estadual vale meio trimestre, no Brasileiro um, no Pan um e meio e no Mundial dois.</li>'+
    '<li>Ninguém passa do tempo mínimo oficial nem da idade mínima. No Jiu-Jitsu (IBJJF): 2 anos de azul, 1 ano e meio de roxa e 1 ano e meio de marrom, ou seja, pelo menos 5 anos da azul até a preta. Azul e roxa a partir dos 16, marrom aos 18 e preta aos 19. Numa academia tradicional o caminho até a preta costuma levar 10 a 12 anos.</li>'+
    '<li>Até os 15 anos o Jiu-Jitsu tem as faixas infantis: cinza, amarela, laranja e verde (cada mestre ainda usa variações com listra branca ou preta). O comum é amarela aos 14, laranja aos 15 e azul aos 16: ao completar 16 anos, quem tem faixa infantil passa para a azul. Quem começa depois dos 16 vai da branca direto para a azul.</li>'+
-   '<li>No Judô (CBJ), cinza, azul e amarela são faixas básicas do caminho infantil. A partir dos 16 anos a CBJ não exige essa sequência: quem é branca vai direto para a laranja. Aos 18, quem ainda estiver numa faixa básica passa para a laranja, a primeira faixa adulta.</li>'+
+   '<li>No Judô, cinza e azul são faixas só do caminho infantil. O caminho adulto é branca, amarela, laranja, verde, roxa, marrom e preta. A partir dos 16 anos, quem é branca, cinza ou azul vai direto para a amarela; aos 18, quem ainda estiver na cinza ou na azul passa para a amarela.</li>'+
    '<li>No Muay Thai segue-se a escala da CBMT: branco, vermelho, azul-claro, azul-escuro e preto, com as pontas entre uma cor e outra. No azul-escuro você vira instrutor.</li>'+
    '<li>Nas faixas infantis do Jiu-Jitsu, se você ganha muitos campeonatos o mestre conversa com você: pular uma faixa, seguir o normal ou segurar mais um ano para dominar a categoria. O mestre tradicional prefere segurar; o que gradua no mínimo prefere pular.</li>'+
    '<li>Ouro no Mundial (Jiu-Jitsu, Judô e Karatê) gradua direto para a próxima faixa no fim do trimestre.</li>'+
