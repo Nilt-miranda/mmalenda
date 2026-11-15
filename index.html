@@ -358,7 +358,7 @@ function mkReq(n,o){o=o||{};const f=i=>i/(n-1),T=o.T||24,R={xp:[],q:[],qmin:[],a
     R.age.push(i===0?0:(o.age?o.age[i]:(i===n-1?(o.ageTop||18):i===n-2?16:0)))}
   return R}
 /* Jiu-Jitsu: cinza, amarela, laranja e verde só até os 15 anos; a azul exige 16. Mínimos IBJJF: 2 anos de azul, 1,5 de roxa e 1,5 de marrom */
-const REQS={bjj:Object.assign(mkReq(9),{xp:[0,2,4,6,8,9,22,38,58],buff:[0,1,1,2,2,3,6,9,13],q:[0,2,3,4,4,4,10,8,8],qmin:[0,2,2,3,3,3,8,6,6],age:[0,0,14,15,15,16,16,18,19]}),judo:mkReq(9,{T:26,ageTop:16}),karate:mkReq(8,{T:26,ageTop:16}),muay:mkReq(9,{T:24,ageTop:18}),boxe:mkReq(6),wrest:mkReq(6)};
+const REQS={bjj:Object.assign(mkReq(9),{xp:[0,2,4,6,8,9,22,38,58],buff:[0,1,1,2,2,3,6,9,13],q:[0,2,3,4,4,4,10,8,8],qmin:[0,2,2,3,3,3,8,6,6],age:[0,0,14,15,15,16,16,18,19]}),judo:Object.assign(mkReq(9,{T:26,ageTop:16}),{xp:[0,3,6,10,24,31,40,49,58],q:[0,2,2,2,3,3,3,3,3],qmin:[0,1,1,2,2,2,2,2,2]}),karate:mkReq(8,{T:26,ageTop:16}),muay:mkReq(9,{T:24,ageTop:18}),boxe:mkReq(6),wrest:mkReq(6)};
 const reqOf=art=>REQS[art];
 const HALF={bjj:6,judo:6,muay:6};
 /* a partir de qual graduação dá aula: [infantil, adulto] */
